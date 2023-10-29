@@ -24,16 +24,13 @@ exports.signup = async (req, res, next) => {
       password: hashed,
     });
     const token = createJwtToken(userId);
-    res.status(201).json({ token, email })
 
-    return res.redirect("/calendars/base-info");
+    return res.redirect("/calendars/:calendarId/base-info");
   } catch (err) {
-    next(err)
+
   }
 }
 
 function createJwtToken(id) {
-  return jwt.sign({ id } , process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_SEC
-  })
+  return jwt.sign({ id } , process.env.JWT_SECRET)
 }

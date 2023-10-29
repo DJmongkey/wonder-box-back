@@ -12,7 +12,7 @@ app.use(express.json())
 
 connectMongoDB();
 
-app.use("/", indexRouter);
+// app.use("/", indexRouter);
 app.use("/auth", authRouter);
 
 const server = app.listen(3030);

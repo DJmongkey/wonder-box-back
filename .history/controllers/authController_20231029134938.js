@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt");
 
 const User = require("../models/users");
@@ -23,17 +22,10 @@ exports.signup = async (req, res, next) => {
       email,
       password: hashed,
     });
-    const token = createJwtToken(userId);
-    res.status(201).json({ token, email })
+    const token = create
 
-    return res.redirect("/calendars/base-info");
+    return res.redirect("/calendars/:calendarId/base-info");
   } catch (err) {
-    next(err)
-  }
-}
 
-function createJwtToken(id) {
-  return jwt.sign({ id } , process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_SEC
-  })
+  }
 }

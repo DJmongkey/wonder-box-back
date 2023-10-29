@@ -8,8 +8,6 @@ const authRouter = require("./routes/authRoutes");
 
 const app = express();
 
-app.use(express.json())
-
 connectMongoDB();
 
 app.use("/", indexRouter);
