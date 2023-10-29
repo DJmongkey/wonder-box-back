@@ -16,5 +16,5 @@ app.use("/", indexRouter);
 app.use("/auth", authRouter);
 
 app.listen(3030, () => {
-  console.log("server onload")
+  console.log(`Server runnig at http://localhost:3030`);
 });
