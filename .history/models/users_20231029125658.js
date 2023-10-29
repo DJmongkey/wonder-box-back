@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "비밀번호를 입력해주세요." ],
-    minlength: 8,
-    maxlength: 16,
+    min: 8,
+    max: 16,
     validate: {
       validator: (value) => passwordRegex.test(value),
       message: "비밀번호는 8~16자의 영문 대/소문자, 숫자, 특수문자가 포함되어야 합니다."
@@ -33,10 +33,7 @@ const userSchema = new mongoose.Schema({
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
-  const salt = await bcrypt.genSalt(11);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
+  const salt = await bcrypt.genSalt(process.env.)
+})
 
 module.exports = mongoose.model("User", userSchema);
