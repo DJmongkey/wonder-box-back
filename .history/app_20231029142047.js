@@ -15,6 +15,4 @@ connectMongoDB();
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
 
-app.listen(3030, () => {
-  console.log("server onload")
-});
+app.listen(3030);

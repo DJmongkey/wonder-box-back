@@ -17,21 +17,18 @@ exports.signup = async (req, res, next) => {
       return res.status(400).json({ message : "비밀번호와 일치하지 않습니다."});
     };
 
+    const hashed = await bcrypt.hash(password, 11);
+
     const userId = await User.create({
       email,
       password
     });
     const token = createJwtToken(userId);
-    res.status(201).json({ token, result : "ok" })
+    res.status(201).json({ token, email })
 
     return res.redirect("/calendars/base-info");
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      const validationErrors = Object.values(err.errors).map((error) => error.message);
-      return res.status(400).json({ result: "fail", message: validationErrors });
-    } else {
-      return next(err);
-    }
+    next(err)
   }
 }
 

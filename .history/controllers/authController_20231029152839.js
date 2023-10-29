@@ -26,12 +26,7 @@ exports.signup = async (req, res, next) => {
 
     return res.redirect("/calendars/base-info");
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      const validationErrors = Object.values(err.errors).map((error) => error.message);
-      return res.status(400).json({ result: "fail", message: validationErrors });
-    } else {
-      return next(err);
-    }
+    next(err)
   }
 }
 
