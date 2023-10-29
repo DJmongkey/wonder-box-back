@@ -17,26 +17,27 @@ exports.signup = async (req, res, next) => {
       return res.status(400).json({ message : "비밀번호와 일치하지 않습니다."});
     };
 
-    const user = await User.create({
+    const userId = await User.create({
       email,
       password
     });
-    const token = createJwtToken(user);
+    const token = createJwtToken(userId);
     res.status(201).json({ token, result : "ok" })
 
-    return res.status(303).redirect("/calendars/base-info");
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((error) => error.message);
-      return res.status(400).json({ result: "error", message: validationErrors });
+    return res.redirect("/calendars/base-info");
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      const validationErrors = Object.values(err.errors).map((error) => error.message);
+      return res.status(400).json({ result: "fail", message: validationErrors });
     } else {
-      return next(error);
+      return next(err);
     }
   }
 }
 
-function createJwtToken(user) {
-  return jwt.sign({ email: user.email } , process.env.JWT_SECRET, {
-    expiresIn: "1h"
+function createJwtToken(id) {
+  const expires = parseInt(process.env.JWT_EXPIRES, 10);
+  return jwt.sign({ id } , process.env.JWT_SECRET, {
+    expiresIn: expires
   })
 }

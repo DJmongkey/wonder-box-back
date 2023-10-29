@@ -24,7 +24,7 @@ exports.signup = async (req, res, next) => {
     const token = createJwtToken(user);
     res.status(201).json({ token, result : "ok" })
 
-    return res.status(303).redirect("/calendars/base-info");
+    return res.redirect("/calendars/base-info");
   } catch (error) {
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map((error) => error.message);
