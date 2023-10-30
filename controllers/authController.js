@@ -39,18 +39,22 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return next(new HttpError(400, '이메일과 비밀번호는 필수입니다.'));
+    }
+
     const user = await User.findOne({ email });
 
     if (!user) {
       return next(
-        new HttpError(400, '이메일 주소 또는 비밀번호를 잘못 입력하셨습니다.'),
+        new HttpError(400, '이메일 또는 비밀번호를 잘못 입력하셨습니다.'),
       );
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return next(
-        new HttpError(400, '이메일 주소 또는 비밀번호를 잘못 입력하셨습니다.'),
+        new HttpError(400, '이메일 또는 비밀번호를 잘못 입력하셨습니다.'),
       );
     }
 

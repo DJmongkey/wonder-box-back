@@ -29,6 +29,8 @@ app.use((err, req, res, next) => {
   res.locals.message = err.message;
   res.locals.error = isDevelopment ? err : {};
 
+  res.status(err.status || 500);
+
   if (
     !isDevelopment &&
     err.status === 500 &&
