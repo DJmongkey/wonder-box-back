@@ -5,10 +5,15 @@ module.exports = {
   AUTH: {
     NEED_EMAIL: "이메일을 입력해주세요.",
     NEED_PW: "비밀번호를 입력해주세요.",
+    NEED_ALL: "이메일과 비밀번호는 필수입니다.",
     EXISTING_EMAIL: "이미 가입된 이메일 주소입니다.",
     UNMATCHED_PW: "비밀번호와 일치하지 않습니다.",
     WRONG_EMAIL_PW: "이메일 주소 또는 비밀번호를 잘못 입력하셨습니다.",
     UNAUTHORIZED: "접근 권한이 없습니다./n로그인한 상태가 아닙니다.",
+    NOT_FOUND_TOKEN: "Token을 찾을 수 없습니다.",
+    NEED_REFRESH_TOKEN: "Refresh Token이 필요합니다.",
+    INVALID_REFRESH_TOKEN: "Refresh Token이 유효하지 않습니다.",
+    INVALID_ACCESS_TOKEN: "Access Token이 유효하지 않습니다.",
   },
   CALENDAR: {
     EMPTY_LIST: "현재 생성된 WonderBox 캘린더가 없습니다.",
