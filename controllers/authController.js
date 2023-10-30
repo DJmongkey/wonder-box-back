@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 
 const User = require('../models/users');
 const HttpError = require('./httpError');
+const ERRORS = require("../errorMessages");
 const { createAccessToken, createRefreshToken } = require('../utils/createJWT');
 
 exports.signup = async (req, res, next) => {
@@ -12,11 +13,11 @@ exports.signup = async (req, res, next) => {
     const isUserExist = await User.findOne({ email });
 
     if (isUserExist) {
-      return next(new HttpError(400, '이미 존재하는 이메일입니다.'));
+      return next(new HttpError(400, ERRORS.AUTH.EXISTING_EMAIL));
     }
 
     if (password !== passwordConfirm) {
-      return next(new HttpError(400, '비밀번호와 일치하지 않습니다.'));
+      return next(new HttpError(400, ERRORS.AUTH.UNMATCHED_PW));
     }
 
     const user = await User.create({ email, password });
@@ -28,9 +29,10 @@ exports.signup = async (req, res, next) => {
       const validationErrors = Object.values(error.errors).map(
         (error) => error.message,
       );
+
       return next(new HttpError(400, validationErrors));
     } else {
-      return next(error);
+      return next(new HttpError(500, ERRORS.PROCESS_ERR));
     }
   }
 };
