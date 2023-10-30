@@ -4,9 +4,10 @@ const express = require('express');
 const connectMongoDB = require('./db');
 const corsMiddleware = require('./middlewares/cors');
 const HttpError = require('./controllers/httpError');
-const ERRORS = require("./errorMessages");
+const ERRORS = require('./errorMessages');
 
 const authRouter = require('./routes/authRoutes');
+const calendarRouter = require('./routes/calendarRoutes');
 
 const app = express();
 
@@ -17,6 +18,7 @@ connectMongoDB();
 app.use(corsMiddleware);
 
 app.use('/auth', authRouter);
+app.use('/calendars', calendarRouter);
 
 app.use((req, res, next) => {
   next(new HttpError(404, ERRORS.NOT_FOUND));
