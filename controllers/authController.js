@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt");
+const HttpError = require('./controllers/httpError');
 
 const User = require("../models/users");
+const ERRORS = require("../errorMessages");
 
 exports.signup = async (req, res, next) => {
   try {
@@ -10,11 +12,11 @@ exports.signup = async (req, res, next) => {
     const isUserExist = await User.findOne({ email });
 
     if (isUserExist) {
-      return res.status(400).json({ message: "이미 존재하는 이메일입니다."});
+      return res.status(400).json({ message: ERRORS.AUTH.EXISTING_EMAIL});
     };
 
     if (password !== passwordConfirm) {
-      return res.status(400).json({ message : "비밀번호와 일치하지 않습니다."});
+      return res.status(400).json({ message : ERRORS.AUTH.UNMATCHED_PW});
     };
 
     const user = await User.create({
@@ -27,10 +29,10 @@ exports.signup = async (req, res, next) => {
     return res.status(303).redirect("/calendars/base-info");
   } catch (error) {
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((error) => error.message);
+      const validationErrors = Object.values(err.errors).map((error) => error.message);
       return res.status(400).json({ result: "error", message: validationErrors });
     } else {
-      return next(error);
+      return next(new HttpError(500, ERRORS.PROCESS_ERR));
     }
   }
 }
