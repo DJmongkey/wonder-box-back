@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const calendarSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
   title: {
     type: String,
     required: [true, 'WonderBox 이름을 입력해주세요.'],
