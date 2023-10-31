@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+
 const HttpError = require('../controllers/httpError');
-const ERRORS = require("../errorMessages");
+const ERRORS = require('../errorMessages');
 
 exports.verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
