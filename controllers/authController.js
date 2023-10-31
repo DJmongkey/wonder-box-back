@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 const User = require('../models/users');
 const HttpError = require('./httpError');
-const ERRORS = require("../errorMessages");
+const ERRORS = require('../errorMessages');
 const { createAccessToken, createRefreshToken } = require('../utils/createJWT');
 
 exports.signup = async (req, res, next) => {
@@ -48,16 +48,12 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return next(
-        new HttpError(400, ERRORS.AUTH.WRONG_EMAIL_PW),
-      );
+      return next(new HttpError(400, ERRORS.AUTH.WRONG_EMAIL_PW));
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return next(
-        new HttpError(400, ERRORS.AUTH.WRONG_EMAIL_PW),
-      );
+      return next(new HttpError(400, ERRORS.AUTH.WRONG_EMAIL_PW));
     }
 
     const accessToken = createAccessToken(user);
@@ -66,9 +62,7 @@ exports.login = async (req, res, next) => {
     res.status(200).json({ accessToken, refreshToken, result: 'ok' });
   } catch (error) {
     console.error(error);
-    return next(
-      new HttpError(500, ERRORS.PROCESS_ERR),
-    );
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
   }
 };
 
@@ -78,13 +72,17 @@ exports.refresh = async (req, res, next) => {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
   }
 
-  jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) {
-      return next(new HttpError(401, ERRORS.AUTH.INVALID_REFRESH_TOKEN));
-    }
+  jwt.verify(
+    refreshToken,
+    process.env.JWT_REFRESH_TOKEN_SECRET,
+    (err, user) => {
+      if (err) {
+        return next(new HttpError(401, ERRORS.AUTH.INVALID_REFRESH_TOKEN));
+      }
 
-    const accessToken = createAccessToken(user);
+      const accessToken = createAccessToken(user);
 
-    res.status(200).json({ accessToken, result: 'ok' });
-  });
+      res.status(200).json({ accessToken, result: 'ok' });
+    },
+  );
 };

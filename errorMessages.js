@@ -23,5 +23,6 @@ module.exports = {
     POST_SUCCESS: "캘린더가 정상적으로 생성 되었습니다.",
     DELETE_SUCCESS: "캘린더가 정상적으로 삭제되었습니다.",
     INVALID_OPTION: "해당 항목을 찾을 수 없습니다.",
+    NOT_FOUND_BASE_INFO: "캘린더 기본 정보를 찾을 수 없습니다."
   },
 }
