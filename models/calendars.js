@@ -27,11 +27,9 @@ const calendarSchema = new mongoose.Schema({
   style: { type: mongoose.Schema.Types.ObjectId, ref: 'Style' },
   options: [
     {
-      type: {
-        type: String,
-        enum: ['current', 'sequence', 'anytime'],
-        required: true,
-      },
+      type: String,
+      enum: ['current', 'sequence', 'anytime'],
+      required: true,
     },
   ],
   contents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DailyBox' }],
