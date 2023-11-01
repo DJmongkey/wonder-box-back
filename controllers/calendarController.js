@@ -9,7 +9,7 @@ const TWO_DAYS_DIFFERENCE = 2;
 
 exports.getBaseInfo = async (req, res, next) => {
   const { userId } = req.user;
-
+  
   try {
     const calendar = await Calendar.findById(req.params.calendarId).lean();
 
@@ -21,7 +21,7 @@ exports.getBaseInfo = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    res.status(200).json({ result: 'ok', calendar });
+    return res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
