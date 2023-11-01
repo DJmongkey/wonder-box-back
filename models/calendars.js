@@ -22,7 +22,7 @@ const calendarSchema = new mongoose.Schema({
     type: Date,
     required: [true, '기간을 설정해주세요.'],
     validate: {
-      validator: function () {
+      validator() {
         return this.startDate < this.endDate;
       },
       message: '시작일은 종료일보다 과거여야 합니다.',

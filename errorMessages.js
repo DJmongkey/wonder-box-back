@@ -15,6 +15,7 @@ module.exports = {
     NEED_REFRESH_TOKEN: 'Refresh Token이 필요합니다.',
     INVALID_REFRESH_TOKEN: 'Refresh Token이 유효하지 않습니다.',
     INVALID_ACCESS_TOKEN: 'Access Token이 유효하지 않습니다.',
+  },
   CALENDAR: {
     EMPTY_LIST: '현재 생성된 WonderBox 캘린더가 없습니다.',
     DURATION_ERR: '시작일은 종료일보다 과거여야 합니다(최소 2일이상)',
