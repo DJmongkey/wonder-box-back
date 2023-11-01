@@ -23,7 +23,6 @@ exports.getBaseInfo = async (req, res, next) => {
 
     res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
-    console.error(error);
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
 };
@@ -118,7 +117,7 @@ exports.postDailyBoxes = async (req, res, next) => {
   try {
     const { date, content, isOpen } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
 
     if (!user) {
       return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
