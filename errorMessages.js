@@ -9,15 +9,15 @@ module.exports = {
     EXISTING_EMAIL: '이미 가입된 이메일 주소입니다.',
     UNMATCHED_PW: '비밀번호와 일치하지 않습니다.',
     WRONG_EMAIL_PW: '이메일 주소 또는 비밀번호를 잘못 입력하셨습니다.',
-    UNAUTHORIZED: '접근 권한이 없습니다./n로그인한 상태가 아닙니다.',
+    USER_NOT_FOUND: '사용자를 찾을 수 없습니다.',
+    UNAUTHORIZED: '접근 권한이 없습니다.',
     NOT_FOUND_TOKEN: 'Token을 찾을 수 없습니다.',
     NEED_REFRESH_TOKEN: 'Refresh Token이 필요합니다.',
     INVALID_REFRESH_TOKEN: 'Refresh Token이 유효하지 않습니다.',
     INVALID_ACCESS_TOKEN: 'Access Token이 유효하지 않습니다.',
-    NOT_FOUND_USER: '사용자를 찾을 수 없습니다.',
-  },
   CALENDAR: {
     EMPTY_LIST: '현재 생성된 WonderBox 캘린더가 없습니다.',
+    DURATION_ERR: '시작일은 종료일보다 과거여야 합니다(최소 2일이상)',
     FAILED_UPDATE: '캘린더 저장에 실패했습니다.',
     FAILED_POST: '캘린더 생성에 실패했습니다.',
     UPDATE_SUCCESS: '캘린더가 정상적으로 업데이트 되었습니다.',
@@ -25,8 +25,6 @@ module.exports = {
     DELETE_SUCCESS: '캘린더가 정상적으로 삭제되었습니다.',
     INVALID_OPTION: '해당 항목을 찾을 수 없습니다.',
     NOT_FOUND_BASE_INFO: '캘린더 기본 정보를 찾을 수 없습니다.',
-    START_DATE_MUST_BE_BEFORE_END_DATE:
-      '시작일은 종료일보다 과거여야 합니다(최소 2일이상)',
-    ONE_OPTION_REQUIRED: '반드시 하나의 옵션을 선택해주세요',
+    REQUIRED_OPTION: '반드시 하나의 옵션을 선택해주세요',
   },
 };

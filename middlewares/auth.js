@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+
 const HttpError = require('../controllers/httpError');
 const ERRORS = require('../errorMessages');
 
