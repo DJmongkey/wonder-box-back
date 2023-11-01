@@ -9,7 +9,7 @@ const TWO_DAYS_DIFFERENCE = 2;
 
 exports.getBaseInfo = async (req, res, next) => {
   const { userId } = req.user;
-  
+
   try {
     const calendar = await Calendar.findById(req.params.calendarId).lean();
 
@@ -154,5 +154,30 @@ exports.postDailyBoxes = async (req, res, next) => {
       return next(new HttpError(400, validationErrors));
     }
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
+
+exports.getAllBoxes = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const calendar = await Calendar.findById(req.params.calendarId).populate(
+      'dailyBoxes',
+    );
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const dailyBoxes = calendar.dailyBoxes;
+
+    return res.status(200).json({ result: 'ok', dailyBoxes });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
 };
