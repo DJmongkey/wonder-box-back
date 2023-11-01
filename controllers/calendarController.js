@@ -9,7 +9,7 @@ const TWO_DAYS_DIFFERENCE = 2;
 
 exports.getBaseInfo = async (req, res, next) => {
   const { userId } = req.user;
-
+  
   try {
     const calendar = await Calendar.findById(req.params.calendarId).lean();
 
