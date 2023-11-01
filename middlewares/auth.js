@@ -12,9 +12,12 @@ exports.verifyToken = (req, res, next) => {
   }
 
   return jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return next(new HttpError(401, ERRORS.AUTH.INVALID_ACCESS_TOKEN));
+    if (err) {
+      return next(new HttpError(401, ERRORS.AUTH.INVALID_ACCESS_TOKEN));
+    }
 
     req.user = user;
+
     return next();
   });
 };

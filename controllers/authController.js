@@ -23,7 +23,9 @@ exports.signup = async (req, res, next) => {
     const user = await User.create({ email, password });
 
     const accessToken = createAccessToken(user);
-    return res.status(201).json({ accessToken, result: 'ok' });
+    const refreshToken = createRefreshToken(user);
+
+    return res.status(201).json({ accessToken, refreshToken, result: 'ok' });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(

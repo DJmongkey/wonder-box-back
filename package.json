@@ -5,16 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js",
-    "pre-commit": "lint-staged && rm -rf .git/hooks && ln -s ../.husky .git/hooks",
-    "prepare": "husky install && husky add .husky/pre-commit 'npm run pre-commit'"
-  },
-  "lint-staged": {
-    "**/*.{js, json}": [
-      "prettier --write .",
-      "eslint --fix .",
-      "git add ."
-    ]
+    "start": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -35,8 +26,6 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-prettier": "^5.0.1",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.0.2",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3"
   }
