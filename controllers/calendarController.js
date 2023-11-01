@@ -21,7 +21,7 @@ exports.getBaseInfo = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    res.status(200).json({ result: 'ok', calendar });
+    return res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
@@ -34,7 +34,7 @@ exports.postBaseInfo = async (req, res, next) => {
     const { title, creator, startDate, endDate, options } = req.body;
     const diffDay = getMonthDiff(startDate, endDate);
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
 
     if (!user) {
       return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
@@ -123,7 +123,7 @@ exports.postDailyBoxes = async (req, res, next) => {
       return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
     }
 
-    const calendar = await Calendar.findById(req.params.calendarId);
+    const calendar = await Calendar.findById(req.params.calendarId).lean();
 
     if (!calendar) {
       return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
