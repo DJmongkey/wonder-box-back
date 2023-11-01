@@ -1,5 +1,3 @@
-// const jwt = require('jsonwebtoken');
-
 const User = require('../models/users');
 const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
