@@ -16,7 +16,7 @@ exports.getBaseInfo = async (req, res, next) => {
   }
 
   const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET);
-  const userId = decoded.userId;
+  const { userId } = decoded;
 
   try {
     const calendar = await Calendar.findById(req.params.calendarId).lean();
@@ -29,7 +29,7 @@ exports.getBaseInfo = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    res.status(200).json({ result: 'ok', calendar });
+    return res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));

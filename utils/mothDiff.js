@@ -1,4 +1,4 @@
-const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24 ;
+const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
 
 exports.getMonthDiff = (start, end) => {
   const startDate = new Date(start);
