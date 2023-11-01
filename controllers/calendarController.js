@@ -175,7 +175,38 @@ exports.getAllBoxes = async (req, res, next) => {
 
     const dailyBoxes = calendar.dailyBoxes;
 
+    if (!dailyBoxes) {
+      return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
+    }
+
     return res.status(200).json({ result: 'ok', dailyBoxes });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
+  }
+};
+
+exports.getDailyBoxes = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const calendar = await Calendar.findById(req.params.calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const dailyBox = await DailyBox.findById(req.query.dailyBoxId).lean();
+
+    if (!dailyBox) {
+      return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
+    }
+
+    return res.status(200).json({ result: 'ok', dailyBox });
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
