@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const User = require('../models/users');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { createAccessToken, createRefreshToken } = require('../utils/createJWT');
+const { createAccessToken, createRefreshToken } = require('../utils/createJwt');
 
 exports.signup = async (req, res, next) => {
   try {
@@ -27,13 +27,12 @@ exports.signup = async (req, res, next) => {
   } catch (error) {
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(
-        (error) => error.message,
+        (err) => err.message,
       );
 
       return next(new HttpError(400, validationErrors));
-    } else {
-      return next(new HttpError(500, ERRORS.PROCESS_ERR));
     }
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
   }
 };
 
@@ -59,7 +58,7 @@ exports.login = async (req, res, next) => {
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
-    res.status(200).json({ accessToken, refreshToken, result: 'ok' });
+    return res.status(200).json({ accessToken, refreshToken, result: 'ok' });
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
@@ -72,7 +71,7 @@ exports.refresh = async (req, res, next) => {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
   }
 
-  jwt.verify(
+  return jwt.verify(
     refreshToken,
     process.env.JWT_REFRESH_TOKEN_SECRET,
     (err, user) => {
@@ -82,7 +81,7 @@ exports.refresh = async (req, res, next) => {
 
       const accessToken = createAccessToken(user);
 
-      res.status(200).json({ accessToken, result: 'ok' });
+      return res.status(200).json({ accessToken, result: 'ok' });
     },
   );
 };

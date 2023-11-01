@@ -15,7 +15,6 @@ module.exports = {
     NEED_REFRESH_TOKEN: 'Refresh Token이 필요합니다.',
     INVALID_REFRESH_TOKEN: 'Refresh Token이 유효하지 않습니다.',
     INVALID_ACCESS_TOKEN: 'Access Token이 유효하지 않습니다.',
-  },
   CALENDAR: {
     EMPTY_LIST: '현재 생성된 WonderBox 캘린더가 없습니다.',
     DURATION_ERR: '시작일은 종료일보다 과거여야 합니다(최소 2일이상)',
@@ -26,6 +25,6 @@ module.exports = {
     DELETE_SUCCESS: '캘린더가 정상적으로 삭제되었습니다.',
     INVALID_OPTION: '해당 항목을 찾을 수 없습니다.',
     NOT_FOUND_BASE_INFO: '캘린더 기본 정보를 찾을 수 없습니다.',
-    NEED_OPTION: '반드시 하나의 옵션을 선택해주세요',
+    REQUIRED_OPTION: '반드시 하나의 옵션을 선택해주세요',
   },
 };
