@@ -31,17 +31,11 @@ const S3 = new S3Client({
 function fileFilter(req, file, cb) {
   const allowedMimes = MIME_TYPES[file.fieldname];
 
-  if (allowedMimes && allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    const errorMessages = [];
-
-    if (!allowedMimes.includes(file.mimetype)) {
-      errorMessages.push(ERRORS.CALENDAR.INVALID_FILE_TYPE);
-    }
-
-    cb(new HttpError(400, errorMessages), false);
+  if (!allowedMimes || !allowedMimes.includes(file.mimetype)) {
+    return cb(new HttpError(400, ERRORS.CALENDAR.INVALID_FILE_TYPE), false);
   }
+
+  cb(null, true);
 }
 
 exports.uploadFiles = multer({
@@ -70,12 +64,13 @@ exports.checkFileSize = async (req, res, next) => {
   }
 
   try {
-    ['image', 'video', 'audio'].forEach(async (type) => {
-      if (files[type] && files[type][0]) {
-        const uploadedFile = files[type][0];
+    for (const type of ['image', 'video', 'audio']) {
+      const fileList = files[type];
+      if (fileList && fileList.length > 0) {
+        const uploadedFile = fileList[0];
         const maxSize = LIMITS[type];
 
-        if (uploadedFile && uploadedFile.size > maxSize) {
+        if (uploadedFile.size > maxSize) {
           await deleteFileFromS3(uploadedFile.key);
 
           return next(
@@ -86,7 +81,7 @@ exports.checkFileSize = async (req, res, next) => {
           );
         }
       }
-    });
+    }
 
     next();
   } catch (error) {
