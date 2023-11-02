@@ -109,7 +109,9 @@ exports.postDailyBoxes = [
     const { userId } = req.user;
 
     try {
-      const { date, content, isOpen } = req.body;
+      const { date, isOpen } = req.body;
+      const updatedContent = req.body.content || {};
+
       const files = req.files;
 
       const user = await User.findById(userId).lean();
@@ -124,17 +126,17 @@ exports.postDailyBoxes = [
         return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
       }
 
-      ['image', 'video', 'audio'].forEach((type) => {
+      const fileUploadAll = ['image', 'video', 'audio'].map(async (type) => {
         if (files[type]) {
-          content[type] = files[type][0].location;
-        } else if (content[type] === '') {
-          delete content[type];
+          updatedContent[type] = files[type][0].location;
         }
       });
 
+      await Promise.all(fileUploadAll);
+
       const dailyBox = await DailyBox.create({
         date,
-        content,
+        content: updatedContent,
         isOpen,
       });
 
