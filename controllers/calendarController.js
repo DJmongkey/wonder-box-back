@@ -3,7 +3,9 @@ const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
+const { deleteFileFromS3, uploadFiles } = require('../middlewares/multer');
 const { getMonthDiff } = require('../utils/mothDiff');
+const { handleErrors } = require('../utils/errorHandlers');
 
 const TWO_DAYS_DIFFERENCE = 2;
 
@@ -21,7 +23,7 @@ exports.getBaseInfo = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    return res.status(200).json({ result: 'ok', calendar });
+    res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
@@ -72,14 +74,7 @@ exports.postBaseInfo = async (req, res, next) => {
       message: ERRORS.CALENDAR.POST_SUCCESS,
     });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message,
-      );
-
-      return next(new HttpError(400, validationErrors));
-    }
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+    handleErrors(error, next);
   }
 };
 
@@ -100,62 +95,65 @@ exports.putBaseInfo = async (req, res, next) => {
       message: ERRORS.CALENDAR.UPDATE_SUCCESS,
     });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message,
-      );
-
-      return next(new HttpError(400, validationErrors));
-    }
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+    handleErrors(error, next);
   }
 };
 
-exports.postDailyBoxes = async (req, res, next) => {
-  const { userId } = req.user;
+exports.postDailyBoxes = [
+  uploadFiles.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
+    { name: 'audio', maxCount: 1 },
+  ]),
+  async (req, res, next) => {
+    const { userId } = req.user;
 
-  try {
-    const { date, content, isOpen } = req.body;
+    try {
+      const { date, content, isOpen } = req.body;
+      const files = req.files;
 
-    const user = await User.findById(userId).lean();
+      const user = await User.findById(userId).lean();
 
-    if (!user) {
-      return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
-    }
+      if (!user) {
+        return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
+      }
 
-    const calendar = await Calendar.findById(req.params.calendarId).lean();
+      const calendar = await Calendar.findById(req.params.calendarId).lean();
 
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
+      if (!calendar) {
+        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+      }
 
-    const dailyBox = await DailyBox.create({
-      date,
-      content,
-      isOpen,
-    });
+      ['image', 'video', 'audio'].forEach((type) => {
+        if (files[type]) {
+          content[type] = files[type][0].location;
+        } else if (content[type] === '') {
+          delete content[type];
+        }
+      });
 
-    await Calendar.updateOne(
-      { _id: calendar._id },
-      { $addToSet: { dailyBoxes: dailyBox._id } },
-    );
+      const dailyBox = await DailyBox.create({
+        date,
+        content,
+        isOpen,
+      });
 
-    return res.status(201).json({
-      result: 'ok',
-      dailyBoxId: dailyBox._id,
-      message: ERRORS.CALENDAR.UPDATE_SUCCESS,
-    });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message,
+      await Calendar.updateOne(
+        { _id: calendar._id },
+        { $addToSet: { dailyBoxes: dailyBox._id } },
       );
 
-      return next(new HttpError(400, validationErrors));
+      return res.status(201).json({
+        result: 'ok',
+        dailyBoxId: dailyBox._id,
+        message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+      });
+    } catch (error) {
+      console.log(error);
+      handleErrors(error, next);
     }
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
-  }
-};
+  },
+];
 
 exports.getAllBoxes = async (req, res, next) => {
   const { userId } = req.user;
@@ -213,43 +211,64 @@ exports.getDailyBoxes = async (req, res, next) => {
   }
 };
 
-exports.putDailyBoxes = async (req, res, next) => {
-  const { userId } = req.user;
+exports.putDailyBoxes = [
+  uploadFiles.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 1 },
+    { name: 'audio', maxCount: 1 },
+  ]),
+  async (req, res, next) => {
+    const { userId } = req.user;
 
-  try {
-    const calendar = await Calendar.findById(req.params.calendarId).lean();
+    try {
+      const updatedContent = req.body.content || {};
+      const files = req.files;
 
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
+      const calendar = await Calendar.findById(req.params.calendarId).lean();
 
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+      if (!calendar) {
+        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+      }
 
-    const dailyBox = await DailyBox.findById(req.params.dailyBoxId).lean();
+      if (calendar.userId.toString() !== userId) {
+        return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+      }
 
-    if (!dailyBox) {
-      return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
-    }
+      const dailyBox = await DailyBox.findById(req.params.dailyBoxId).lean();
 
-    await DailyBox.updateOne(
-      { _id: dailyBox._id },
-      { $set: { content: { ...req.body } } },
-    );
+      if (!dailyBox) {
+        return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
+      }
 
-    return res.status(200).json({
-      result: 'ok',
-      message: ERRORS.CALENDAR.UPDATE_SUCCESS,
-    });
-  } catch (error) {
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(
-        (err) => err.message,
+      async function handleFileUpdate(type) {
+        if (files && files[type] && files[type][0]) {
+          const oldUrl = dailyBox.content[type];
+
+          if (oldUrl) {
+            const oldKey = oldUrl.split('/').pop();
+
+            await deleteFileFromS3(oldKey);
+          }
+
+          dailyBox.content[type] = files[type][0].location;
+        }
+      }
+
+      await handleFileUpdate('image');
+      await handleFileUpdate('video');
+      await handleFileUpdate('audio');
+
+      await DailyBox.updateOne(
+        { _id: dailyBox._id },
+        { $set: { content: { ...dailyBox.content, ...updatedContent } } },
       );
 
-      return next(new HttpError(400, validationErrors));
+      return res.status(200).json({
+        result: 'ok',
+        message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+      });
+    } catch (error) {
+      handleErrors(error, next);
     }
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
-  }
-};
+  },
+];

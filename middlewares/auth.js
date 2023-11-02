@@ -11,13 +11,12 @@ exports.verifyToken = (req, res, next) => {
     return next(new HttpError(401, ERRORS.AUTH.NOT_FOUND_TOKEN));
   }
 
-  return jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) {
       return next(new HttpError(401, ERRORS.AUTH.INVALID_ACCESS_TOKEN));
     }
 
     req.user = user;
-
     return next();
   });
 };

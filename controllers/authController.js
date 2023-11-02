@@ -60,7 +60,7 @@ exports.login = async (req, res, next) => {
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
-    return res.status(200).json({ accessToken, refreshToken, result: 'ok' });
+    res.status(200).json({ accessToken, refreshToken, result: 'ok' });
   } catch (error) {
     console.error(error);
 
@@ -75,7 +75,7 @@ exports.refresh = async (req, res, next) => {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
   }
 
-  return jwt.verify(
+  jwt.verify(
     refreshToken,
     process.env.JWT_REFRESH_TOKEN_SECRET,
     (err, user) => {
@@ -85,7 +85,7 @@ exports.refresh = async (req, res, next) => {
 
       const accessToken = createAccessToken(user);
 
-      return res.status(200).json({ accessToken, result: 'ok' });
+      res.status(200).json({ accessToken, result: 'ok' });
     },
   );
 };

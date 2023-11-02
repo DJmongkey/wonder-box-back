@@ -1,4 +1,6 @@
 const express = require('express');
+const router = express.Router();
+
 const {
   getBaseInfo,
   postBaseInfo,
@@ -9,16 +11,25 @@ const {
   putDailyBoxes,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
-
-const router = express.Router();
+const { checkFileSize } = require('../middlewares/multer');
 
 router.post('/', verifyToken, postBaseInfo);
 router.get('/:calendarId/base-info', verifyToken, getBaseInfo);
 router.put('/:calendarId/base-info', verifyToken, putBaseInfo);
 
-router.post('/:calendarId/daily-boxes', verifyToken, postDailyBoxes);
+router.post(
+  '/:calendarId/daily-boxes',
+  verifyToken,
+  checkFileSize,
+  postDailyBoxes,
+);
 router.get('/:calendarId/daily-boxes', verifyToken, getAllBoxes);
 router.get('/:calendarId/daily-boxes/:dailyBoxId', verifyToken, getDailyBoxes);
-router.put('/:calendarId/daily-boxes/:dailyBoxId', verifyToken, putDailyBoxes);
+router.put(
+  '/:calendarId/daily-boxes/:dailyBoxId',
+  verifyToken,
+  checkFileSize,
+  putDailyBoxes,
+);
 
 module.exports = router;
