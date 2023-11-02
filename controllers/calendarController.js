@@ -212,3 +212,44 @@ exports.getDailyBoxes = async (req, res, next) => {
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
   }
 };
+
+exports.putDailyBoxes = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const calendar = await Calendar.findById(req.params.calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const dailyBox = await DailyBox.findById(req.params.dailyBoxId).lean();
+
+    if (!dailyBox) {
+      return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
+    }
+
+    await DailyBox.updateOne(
+      { _id: dailyBox._id },
+      { $set: { content: { ...req.body } } },
+    );
+
+    return res.status(200).json({
+      result: 'ok',
+      message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(
+        (err) => err.message,
+      );
+
+      return next(new HttpError(400, validationErrors));
+    }
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
