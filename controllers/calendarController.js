@@ -240,23 +240,22 @@ exports.putDailyBoxes = [
         return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
       }
 
-      async function handleFileUpdate(type) {
-        if (files && files[type] && files[type][0]) {
+      const fileUpdateAll = ['image', 'video', 'audio'].map(async (type) => {
+        if (files[type]) {
+          const file = files[type][0];
           const oldUrl = dailyBox.content[type];
+
+          updatedContent[type] = file.location;
 
           if (oldUrl) {
             const oldKey = oldUrl.split('/').pop();
 
             await deleteFileFromS3(oldKey);
           }
-
-          dailyBox.content[type] = files[type][0].location;
         }
-      }
+      });
 
-      await handleFileUpdate('image');
-      await handleFileUpdate('video');
-      await handleFileUpdate('audio');
+      await Promise.all(fileUpdateAll);
 
       await DailyBox.updateOne(
         { _id: dailyBox._id },
