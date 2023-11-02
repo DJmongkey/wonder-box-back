@@ -6,6 +6,7 @@ const {
   postDailyBoxes,
   getDailyBoxes,
   getAllBoxes,
+  putDailyBoxes,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 
@@ -18,5 +19,6 @@ router.put('/:calendarId/base-info', verifyToken, putBaseInfo);
 router.post('/:calendarId/daily-boxes', verifyToken, postDailyBoxes);
 router.get('/:calendarId/daily-boxes', verifyToken, getAllBoxes);
 router.get('/:calendarId/daily-boxes/:dailyBoxId', verifyToken, getDailyBoxes);
+router.put('/:calendarId/daily-boxes/:dailyBoxId', verifyToken, putDailyBoxes);
 
 module.exports = router;
