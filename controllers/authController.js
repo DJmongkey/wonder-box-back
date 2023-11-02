@@ -63,12 +63,14 @@ exports.login = async (req, res, next) => {
     return res.status(200).json({ accessToken, refreshToken, result: 'ok' });
   } catch (error) {
     console.error(error);
+
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
   }
 };
 
 exports.refresh = async (req, res, next) => {
   const { refreshToken } = req.body;
+
   if (!refreshToken) {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
   }

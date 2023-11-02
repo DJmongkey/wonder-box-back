@@ -26,6 +26,7 @@ module.exports = {
     DELETE_SUCCESS: '캘린더가 정상적으로 삭제되었습니다.',
     INVALID_OPTION: '해당 항목을 찾을 수 없습니다.',
     NOT_FOUND: '캘린더 정보를 찾을 수 없습니다.',
+    CONTENTS_NOT_FOUND: '입력한 컨텐츠 정보를 찾을 수 없습니다.',
     REQUIRED_OPTION: '반드시 하나의 옵션을 선택해주세요',
   },
 };
