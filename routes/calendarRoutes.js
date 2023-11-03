@@ -10,6 +10,7 @@ const {
   getAllBoxes,
   putDailyBoxes,
   getMyWonderBox,
+  deleteMyWonderBox,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
@@ -34,6 +35,6 @@ router.put(
 );
 
 router.get('/', verifyToken, getMyWonderBox);
-router.delete('/:calendarId', verifyToken, getMyWonderBox);
+router.delete('/:calendarId', verifyToken, deleteMyWonderBox);
 
 module.exports = router;
