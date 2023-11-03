@@ -395,3 +395,32 @@ exports.postStyle = async (req, res, next) => {
     handleErrors(error, next);
   }
 };
+
+exports.getStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const { style } = calendar;
+
+    if (!style) {
+      return next(new HttpError(404, ERRORS.CALENDAR.STYLE_NOT_FOUND));
+    }
+
+    return res.status(200).json({ result: 'ok', style });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
+  }
+};

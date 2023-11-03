@@ -13,6 +13,7 @@ const {
   getMyWonderBox,
   deleteMyWonderBox,
   postStyle,
+  getStyle,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
@@ -37,6 +38,7 @@ router.put(
 );
 
 router.post('/:calendarId/style', verifyToken, checkFileSize, postStyle);
+router.get('/:calendarId/style', verifyToken, getStyle);
 
 router.get('/', verifyToken, getMyWonderBox);
 router.delete('/:calendarId', verifyToken, deleteMyWonderBox);
