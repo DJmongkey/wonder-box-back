@@ -34,5 +34,6 @@ router.put(
 );
 
 router.get('/', verifyToken, getMyWonderBox);
+router.delete('/:calendarId', verifyToken, getMyWonderBox);
 
 module.exports = router;
