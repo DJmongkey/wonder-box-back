@@ -311,3 +311,30 @@ exports.getMyWonderBox = async (req, res, next) => {
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
   }
 };
+
+exports.deleteMyWonderBox = async (req, res, next) => {
+  const { userId } = req.user;
+  try {
+    const calendarId = req.params.calendarId;
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    await Calendar.findByIdAndDelete(calendarId);
+
+    await User.updateOne({ _id: userId }, { $pull: { calendars: calendarId } });
+
+    return res
+      .status(200)
+      .json({ result: 'ok', message: ERRORS.CALENDAR.DELETE_SUCCESS });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
