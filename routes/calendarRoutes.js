@@ -9,6 +9,7 @@ const {
   getDailyBoxes,
   getAllBoxes,
   putDailyBoxes,
+  getMyWonderBox,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
@@ -31,5 +32,7 @@ router.put(
   checkFileSize,
   putDailyBoxes,
 );
+
+router.get('/', verifyToken, getMyWonderBox);
 
 module.exports = router;
