@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     required: [true, '이메일을 입력해주세요.'],
     unique: true,
     validate: {
-      validator: (value) => emailRegex.test(value),
+      validator: (v) => emailRegex.test(v),
       message: '올바르지 않은 이메일 주소입니다.',
     },
   },
@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
     maxlength: 16,
     validate: {
-      validator: (value) => passwordRegex.test(value),
+      validator: (v) => passwordRegex.test(v),
       message:
         '비밀번호는 8~16자의 영문 대/소문자, 숫자, 특수문자가 포함되어야 합니다.',
     },
