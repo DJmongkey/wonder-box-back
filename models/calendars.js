@@ -53,6 +53,10 @@ const calendarSchema = new mongoose.Schema({
     type: String,
     required: [true, '보내는 사람의 이름을 입력해주세요.'],
   },
+  createdAt: {
+    type: Date,
+    required: true,
+  },
   startDate: {
     type: Date,
     required: [true, '기간을 설정해주세요.'],

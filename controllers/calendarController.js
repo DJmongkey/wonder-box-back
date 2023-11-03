@@ -33,7 +33,7 @@ exports.postBaseInfo = async (req, res, next) => {
   const { userId } = req.user;
 
   try {
-    const { title, creator, startDate, endDate, options } = req.body;
+    const { title, creator, createdAt, startDate, endDate, options } = req.body;
     const diffDay = getMonthDiff(startDate, endDate);
 
     const user = await User.findById(userId).lean();
@@ -53,6 +53,7 @@ exports.postBaseInfo = async (req, res, next) => {
     const calendar = await Calendar.create({
       title,
       creator,
+      createdAt,
       startDate,
       endDate,
       options,
@@ -273,3 +274,40 @@ exports.putDailyBoxes = [
     }
   },
 ];
+
+exports.getMyWonderBox = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+      return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
+    }
+
+    const calendars = await Promise.all(
+      user.calendars.map(async (calendarId) => {
+        const calendar = await Calendar.findById(calendarId).lean();
+
+        if (!calendar) {
+          return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+        }
+
+        return {
+          calendarId: calendar._id,
+          title: calendar.title,
+          creator: calendar.creator,
+          createdAt: calendar.createdAt,
+          startDate: calendar.startDate,
+          endDate: calendar.endDate,
+          shareUrl: calendar.shareUrl,
+        };
+      }),
+    );
+
+    return res.status(200).json({ result: 'ok', calendars });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
