@@ -328,6 +328,8 @@ exports.deleteMyWonderBox = async (req, res, next) => {
 
     await Calendar.findByIdAndDelete(calendarId);
 
+    await User.updateOne({ _id: userId }, { $pull: { calendars: calendarId } });
+
     return res
       .status(200)
       .json({ result: 'ok', message: ERRORS.CALENDAR.DELETE_SUCCESS });
