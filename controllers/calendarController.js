@@ -3,7 +3,8 @@ const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { deleteFileFromS3, uploadFiles } = require('../middlewares/multer');
+const { uploadFiles } = require('../middlewares/multer');
+const { deleteFileFromS3 } = require('../utils/s3');
 const { getMonthDiff } = require('../utils/mothDiff');
 const { handleErrors } = require('../utils/errorHandlers');
 
@@ -251,8 +252,9 @@ exports.putDailyBoxes = [
 
           if (oldUrl) {
             const oldKey = oldUrl.split('/').pop();
+            const decodedKey = decodeURIComponent(oldKey);
 
-            await deleteFileFromS3(oldKey);
+            await deleteFileFromS3(`image/${decodedKey}`);
           }
         }
       });
@@ -421,5 +423,64 @@ exports.getStyle = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
+  }
+};
+
+exports.putStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    uploadFiles.single('image')(req, res, async function (error) {
+      if (error) {
+        return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
+      }
+
+      const calendar = await Calendar.findById(calendarId).lean();
+
+      if (!calendar) {
+        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+      }
+
+      if (calendar.userId.toString() !== userId) {
+        return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+      }
+
+      const oldUrl = calendar.style.bgImage || calendar.style[0].bgImage;
+
+      if (oldUrl) {
+        const oldKey = oldUrl.split('/').pop();
+        const decodedKey = decodeURIComponent(oldKey);
+
+        await deleteFileFromS3(`image/${decodedKey}`);
+      }
+
+      const updateStyles = { ...req.body };
+
+      const boxStyle = req.body.box || {};
+
+      const updateBgImage = req.file.location;
+
+      const updatedStyle = {
+        titleFont: updateStyles.titleFont,
+        titleColor: updateStyles.titleColor,
+        borderColor: updateStyles.borderColor,
+        bgImage: updateBgImage,
+        box: boxStyle,
+      };
+
+      await Calendar.updateOne(
+        { _id: calendarId },
+        { $set: { style: updatedStyle } },
+      );
+
+      return res
+        .status(200)
+        .json({ result: 'ok', message: ERRORS.CALENDAR.UPDATE_SUCCESS });
+    });
+  } catch (error) {
+    console.error(error);
+    handleErrors(error, next);
   }
 };
