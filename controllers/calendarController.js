@@ -10,18 +10,8 @@ const { handleErrors } = require('../utils/errorHandlers');
 const TWO_DAYS_DIFFERENCE = 2;
 
 exports.getBaseInfo = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+    const { calendar } = req;
 
     res.status(200).json({ result: 'ok', calendar });
   } catch (error) {
@@ -30,10 +20,11 @@ exports.getBaseInfo = async (req, res, next) => {
 };
 
 exports.postBaseInfo = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
+    const { userId } = req.user;
+
     const { title, creator, startDate, endDate, options } = req.body;
+
     const diffDay = getMonthDiff(startDate, endDate);
 
     const user = await User.findById(userId).lean();
@@ -80,15 +71,11 @@ exports.postBaseInfo = async (req, res, next) => {
 
 exports.putBaseInfo = async (req, res, next) => {
   try {
-    const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(400, ERRORS.CALENDAR.NOT_FOUND));
-    }
+    const { calendarId } = req;
 
     const updateFields = { ...req.body };
 
-    await Calendar.updateOne({ _id: calendar._id }, { $set: updateFields });
+    await Calendar.updateOne({ _id: calendarId }, { $set: updateFields });
 
     return res.status(200).json({
       result: 'ok',
@@ -106,7 +93,7 @@ exports.postDailyBoxes = [
     { name: 'audio', maxCount: 1 },
   ]),
   async (req, res, next) => {
-    const { userId } = req.user;
+    const { calendarId, userId } = req;
 
     try {
       const { date, isOpen } = req.body;
@@ -118,12 +105,6 @@ exports.postDailyBoxes = [
 
       if (!user) {
         return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
-      }
-
-      const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-      if (!calendar) {
-        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
       }
 
       const fileUploadAll = ['image', 'video', 'audio'].map(async (type) => {
@@ -141,7 +122,7 @@ exports.postDailyBoxes = [
       });
 
       await Calendar.updateOne(
-        { _id: calendar._id },
+        { _id: calendarId },
         { $addToSet: { dailyBoxes: dailyBox._id } },
       );
 
@@ -158,20 +139,10 @@ exports.postDailyBoxes = [
 ];
 
 exports.getAllBoxes = async (req, res, next) => {
-  const { userId } = req.user;
+  const { calendarId } = req;
 
   try {
-    const calendar = await Calendar.findById(req.params.calendarId).populate(
-      'dailyBoxes',
-    );
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+    const calendar = await Calendar.findById(calendarId).populate('dailyBoxes');
 
     const { dailyBoxes } = calendar;
 
@@ -187,20 +158,8 @@ exports.getAllBoxes = async (req, res, next) => {
 };
 
 exports.getDailyBoxes = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
-
-    const dailyBox = await DailyBox.findById(req.query.dailyBoxId).lean();
+    const dailyBox = await DailyBox.findById(req.params.dailyBoxId).lean();
 
     if (!dailyBox) {
       return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
@@ -220,21 +179,9 @@ exports.putDailyBoxes = [
     { name: 'audio', maxCount: 1 },
   ]),
   async (req, res, next) => {
-    const { userId } = req.user;
-
     try {
       const updatedContent = req.body.content || {};
       const { files } = req;
-
-      const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-      if (!calendar) {
-        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-      }
-
-      if (calendar.userId.toString() !== userId) {
-        return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-      }
 
       const dailyBox = await DailyBox.findById(req.params.dailyBoxId).lean();
 
@@ -313,18 +260,8 @@ exports.getMyWonderBox = async (req, res, next) => {
 };
 
 exports.deleteMyWonderBox = async (req, res, next) => {
-  const { userId } = req.user;
   try {
-    const { calendarId } = req.params;
-    const calendar = await Calendar.findById(calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+    const { calendarId, userId } = req;
 
     await Calendar.findByIdAndDelete(calendarId);
 
@@ -340,22 +277,8 @@ exports.deleteMyWonderBox = async (req, res, next) => {
 };
 
 exports.postStyle = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const { calendarId } = req.params;
-
-    const user = await User.findById(userId).lean();
-
-    if (!user) {
-      return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
-    }
-
-    const calendar = await Calendar.findById(calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
+    const { calendarId } = req;
 
     uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
@@ -397,20 +320,8 @@ exports.postStyle = async (req, res, next) => {
 };
 
 exports.getStyle = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const { calendarId } = req.params;
-
-    const calendar = await Calendar.findById(calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+    const { calendar } = req;
 
     const { style } = calendar;
 
@@ -426,24 +337,12 @@ exports.getStyle = async (req, res, next) => {
 };
 
 exports.putStyle = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const { calendarId } = req.params;
+    const { calendarId, calendar } = req;
 
     uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
-      }
-
-      const calendar = await Calendar.findById(calendarId).lean();
-
-      if (!calendar) {
-        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-      }
-
-      if (calendar.userId.toString() !== userId) {
-        return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
       }
 
       const oldUrl = calendar.style.bgImage || calendar.style[0].bgImage;
@@ -485,20 +384,8 @@ exports.putStyle = async (req, res, next) => {
 };
 
 exports.postShareLink = async (req, res, next) => {
-  const { userId } = req.user;
-
   try {
-    const { calendarId } = req.params;
-
-    const calendar = await Calendar.findById(calendarId).lean();
-
-    if (!calendar) {
-      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-    }
-
-    if (calendar.userId.toString() !== userId) {
-      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
-    }
+    const { calendarId } = req;
 
     const shareUrl = generateShareLink(calendarId);
 
