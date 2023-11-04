@@ -357,7 +357,7 @@ exports.postStyle = async (req, res, next) => {
       return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
     }
 
-    uploadFiles.single('image')(req, res, async function (error) {
+    uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
@@ -431,7 +431,7 @@ exports.putStyle = async (req, res, next) => {
   try {
     const { calendarId } = req.params;
 
-    uploadFiles.single('image')(req, res, async function (error) {
+    uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
