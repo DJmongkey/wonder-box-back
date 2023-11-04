@@ -99,7 +99,7 @@ exports.logout = async (req, res, next) => {
 };
 
 exports.refresh = async (req, res, next) => {
-  const refreshToken = req.cookies.refreshToken;
+  const { refreshToken } = req.cookies;
 
   if (!refreshToken) {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
