@@ -1,4 +1,5 @@
 const express = require('express');
+
 const router = express.Router();
 
 const {
@@ -11,6 +12,7 @@ const {
   putDailyBoxes,
   getMyWonderBox,
   deleteMyWonderBox,
+  postStyle,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
@@ -33,6 +35,8 @@ router.put(
   checkFileSize,
   putDailyBoxes,
 );
+
+router.post('/:calendarId/style', verifyToken, checkFileSize, postStyle);
 
 router.get('/', verifyToken, getMyWonderBox);
 router.delete('/:calendarId', verifyToken, deleteMyWonderBox);

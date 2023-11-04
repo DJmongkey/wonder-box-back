@@ -113,7 +113,7 @@ exports.postDailyBoxes = [
       const { date, isOpen } = req.body;
       const updatedContent = req.body.content || {};
 
-      const files = req.files;
+      const { files } = req;
 
       const user = await User.findById(userId).lean();
 
@@ -174,7 +174,7 @@ exports.getAllBoxes = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    const dailyBoxes = calendar.dailyBoxes;
+    const { dailyBoxes } = calendar;
 
     if (!dailyBoxes) {
       return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
@@ -225,7 +225,7 @@ exports.putDailyBoxes = [
 
     try {
       const updatedContent = req.body.content || {};
-      const files = req.files;
+      const { files } = req;
 
       const calendar = await Calendar.findById(req.params.calendarId).lean();
 
@@ -315,7 +315,7 @@ exports.getMyWonderBox = async (req, res, next) => {
 exports.deleteMyWonderBox = async (req, res, next) => {
   const { userId } = req.user;
   try {
-    const calendarId = req.params.calendarId;
+    const { calendarId } = req.params;
     const calendar = await Calendar.findById(calendarId).lean();
 
     if (!calendar) {
@@ -336,5 +336,62 @@ exports.deleteMyWonderBox = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
+
+exports.postStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+      return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
+    }
+
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    uploadFiles.single('image')(req, res, async function (err) {
+      if (err) {
+        return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
+      }
+      const { titleFont, titleColor, borderColor } = req.body;
+
+      const boxStyle = req.body.box || {};
+
+      const bgImage = req.file.location;
+
+      const styleData = {
+        titleFont,
+        titleColor,
+        borderColor,
+        bgImage,
+        box: boxStyle,
+      };
+
+      if (!styleData) {
+        return next(new HttpError(400, ERRORS.CALENDAR.FAILED_STYLE));
+      }
+
+      await Calendar.updateOne(
+        { _id: calendarId },
+        { $addToSet: { style: styleData } },
+      );
+
+      return res.status(200).json({
+        result: 'ok',
+        calendars: calendarId,
+        message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    handleErrors(error, next);
   }
 };
