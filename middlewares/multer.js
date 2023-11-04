@@ -1,10 +1,9 @@
 const multer = require('multer');
 const multerS3 = require('multer-s3');
-const { S3Client } = require('@aws-sdk/client-s3');
+const { S3Client, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const ERRORS = require('../errorMessages');
 const HttpError = require('../controllers/httpError');
-const { deleteFileFromS3 } = require('../utils/s3');
 
 const ONE_MONTH = 2678400;
 
@@ -50,14 +49,14 @@ exports.uploadFiles = multer({
       cb(null, filename);
     },
   }),
-  fileFilter: fileFilter,
+  fileFilter,
   limits: {
     fileSize: Math.max(...Object.values(LIMITS)),
   },
 });
 
 exports.checkFileSize = async (req, res, next) => {
-  const files = req.files;
+  const { files } = req;
 
   if (!files) {
     return next();
@@ -86,5 +85,20 @@ exports.checkFileSize = async (req, res, next) => {
     next();
   } catch (error) {
     return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
+  }
+};
+
+exports.deleteFileFromS3 = async (fileKey) => {
+  try {
+    const deleteCommand = new DeleteObjectCommand({
+      Bucket: 'wonderbox',
+      Key: fileKey,
+    });
+    await S3.send(deleteCommand);
+
+    console.log(`${fileKey} 삭제 완료`);
+  } catch (error) {
+    console.error(error);
+    throw new HttpError(500, ERRORS.PROCESS_ERR);
   }
 };

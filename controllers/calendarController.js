@@ -3,8 +3,7 @@ const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { uploadFiles } = require('../middlewares/multer');
-const { deleteFileFromS3 } = require('../utils/s3');
+const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
 const { getMonthDiff } = require('../utils/mothDiff');
 const { handleErrors } = require('../utils/errorHandlers');
 
