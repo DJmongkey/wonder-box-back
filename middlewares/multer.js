@@ -49,7 +49,7 @@ exports.uploadFiles = multer({
       cb(null, filename);
     },
   }),
-  fileFilter,
+  fileFilter: fileFilter,
   limits: {
     fileSize: Math.max(...Object.values(LIMITS)),
   },
@@ -65,6 +65,7 @@ exports.checkFileSize = async (req, res, next) => {
   try {
     for (const type of ['image', 'video', 'audio']) {
       const fileList = files[type];
+
       if (fileList && fileList.length > 0) {
         const uploadedFile = fileList[0];
         const maxSize = LIMITS[type];
