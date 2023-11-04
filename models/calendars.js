@@ -55,7 +55,6 @@ const calendarSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    required: true,
   },
   startDate: {
     type: Date,

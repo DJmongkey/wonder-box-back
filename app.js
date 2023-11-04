@@ -3,6 +3,7 @@ const express = require('express');
 
 const connectMongoDB = require('./db');
 const corsMiddleware = require('./middlewares/cors');
+const cookieParser = require('cookie-parser');
 const HttpError = require('./controllers/httpError');
 const ERRORS = require('./errorMessages');
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 connectMongoDB();
 
+app.use(cookieParser());
 app.use(corsMiddleware);
 
 app.use('/auth', authRouter);

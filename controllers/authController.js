@@ -6,6 +6,8 @@ const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
 const { createAccessToken, createRefreshToken } = require('../utils/createJwt');
 
+const COOKIE_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000;
+
 exports.signup = async (req, res, next) => {
   try {
     const { email, password, passwordConfirm } = req.body;
@@ -25,7 +27,15 @@ exports.signup = async (req, res, next) => {
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
-    return res.status(201).json({ accessToken, refreshToken, result: 'ok' });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      sameSite: 'strict',
+      maxAge: COOKIE_EXPIRATION_MS,
+    });
+
+    return res.status(201).json({ accessToken, result: 'ok' });
   } catch (error) {
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors).map(
@@ -60,7 +70,15 @@ exports.login = async (req, res, next) => {
     const accessToken = createAccessToken(user);
     const refreshToken = createRefreshToken(user);
 
-    res.status(200).json({ accessToken, refreshToken, result: 'ok' });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      sameSite: 'strict',
+      maxAge: COOKIE_EXPIRATION_MS,
+    });
+
+    res.status(200).json({ accessToken, result: 'ok' });
   } catch (error) {
     console.error(error);
 
@@ -68,8 +86,20 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.logout = async (req, res, next) => {
+  res.cookie('refreshToken', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    sameSite: 'strict',
+    maxAge: 0,
+  });
+
+  res.status(200).json({ result: 'ok', message: ERRORS.AUTH.LOGOUT_SUCCESS });
+};
+
 exports.refresh = async (req, res, next) => {
-  const { refreshToken } = req.body;
+  const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
     return next(new HttpError(400, ERRORS.AUTH.NEED_REFRESH_TOKEN));
