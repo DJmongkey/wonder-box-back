@@ -483,3 +483,41 @@ exports.putStyle = async (req, res, next) => {
     handleErrors(error, next);
   }
 };
+
+exports.postShareLink = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const shareUrl = generateShareLink(calendarId);
+
+    if (!shareUrl) {
+      return next(new HttpError(400, ERRORS.CALENDAR.FAILED_SHARE_LINK));
+    }
+
+    await Calendar.updateOne({ _id: calendarId }, { $set: { shareUrl } });
+
+    return res.status(200).json({
+      result: 'ok',
+      shareLink: shareUrl,
+    });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
+
+function generateShareLink(calendarId) {
+  return `https://mywonder.com/calendars/${calendarId}/share`;
+}
