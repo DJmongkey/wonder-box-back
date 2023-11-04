@@ -358,8 +358,8 @@ exports.postStyle = async (req, res, next) => {
       return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
     }
 
-    uploadFiles.single('image')(req, res, async function (err) {
-      if (err) {
+    uploadFiles.single('image')(req, res, async function (error) {
+      if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
       const { titleFont, titleColor, borderColor } = req.body;
@@ -382,7 +382,7 @@ exports.postStyle = async (req, res, next) => {
 
       await Calendar.updateOne(
         { _id: calendarId },
-        { $addToSet: { style: styleData } },
+        { $addToSet: { style: styleData }, $set: { createdAt: new Date() } },
       );
 
       return res.status(200).json({
