@@ -3,8 +3,7 @@ const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { uploadFiles } = require('../middlewares/multer');
-const { deleteFileFromS3 } = require('../utils/s3');
+const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
 const { getMonthDiff } = require('../utils/mothDiff');
 const { handleErrors } = require('../utils/errorHandlers');
 
@@ -358,8 +357,8 @@ exports.postStyle = async (req, res, next) => {
       return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
     }
 
-    uploadFiles.single('image')(req, res, async function (err) {
-      if (err) {
+    uploadFiles.single('image')(req, res, async (error) => {
+      if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
       const { titleFont, titleColor, borderColor } = req.body;
@@ -382,7 +381,7 @@ exports.postStyle = async (req, res, next) => {
 
       await Calendar.updateOne(
         { _id: calendarId },
-        { $addToSet: { style: styleData } },
+        { $addToSet: { style: styleData }, $set: { createdAt: new Date() } },
       );
 
       return res.status(200).json({
@@ -432,7 +431,7 @@ exports.putStyle = async (req, res, next) => {
   try {
     const { calendarId } = req.params;
 
-    uploadFiles.single('image')(req, res, async function (error) {
+    uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
