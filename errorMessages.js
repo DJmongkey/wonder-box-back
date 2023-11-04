@@ -31,5 +31,7 @@ module.exports = {
     REQUIRED_OPTION: '반드시 하나의 옵션을 선택해주세요',
     INVALID_FILE_TYPE: '유효한 파일 타입이 아닙니다.',
     FAILED_UPLOAD: '파일 업로드에 실패했습니다.',
+    FAILED_STYLE: '스타일 저장에 실패했습니다. 다시 한 번 시도해주세요',
+    STYLE_NOT_FOUND: '지정한 스타일 정보를 찾을 수 없습니다.',
   },
 };

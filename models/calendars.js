@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+const imageUrlRegex = /^(ftp|http|https):\/\/[^ "]+\.(jpg|jpeg|png|gif)$/;
+const imagePathRegex = /^.*\.(jpg|jpeg|png|gif)$/;
+
 const boxSchema = new mongoose.Schema({
   font: {
     type: String,
@@ -31,6 +34,12 @@ const styleSchema = new mongoose.Schema({
   bgImage: {
     type: String,
     required: [true, '배경 이미지를 지정해주세요.'],
+    validate: {
+      validator: (v) => {
+        imageUrlRegex.test(v) || imagePathRegex.test(v);
+      },
+      message: '유효한 이미지 URL 또는 파일 경로가 아닙니다!',
+    },
   },
   box: boxSchema,
 });

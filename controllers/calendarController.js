@@ -3,7 +3,7 @@ const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { deleteFileFromS3, uploadFiles } = require('../middlewares/multer');
+const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
 const { getMonthDiff } = require('../utils/mothDiff');
 const { handleErrors } = require('../utils/errorHandlers');
 
@@ -112,7 +112,7 @@ exports.postDailyBoxes = [
       const { date, isOpen } = req.body;
       const updatedContent = req.body.content || {};
 
-      const files = req.files;
+      const { files } = req;
 
       const user = await User.findById(userId).lean();
 
@@ -173,7 +173,7 @@ exports.getAllBoxes = async (req, res, next) => {
       return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
     }
 
-    const dailyBoxes = calendar.dailyBoxes;
+    const { dailyBoxes } = calendar;
 
     if (!dailyBoxes) {
       return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
@@ -224,7 +224,7 @@ exports.putDailyBoxes = [
 
     try {
       const updatedContent = req.body.content || {};
-      const files = req.files;
+      const { files } = req;
 
       const calendar = await Calendar.findById(req.params.calendarId).lean();
 
@@ -251,8 +251,9 @@ exports.putDailyBoxes = [
 
           if (oldUrl) {
             const oldKey = oldUrl.split('/').pop();
+            const decodedKey = decodeURIComponent(oldKey);
 
-            await deleteFileFromS3(oldKey);
+            await deleteFileFromS3(`image/${decodedKey}`);
           }
         }
       });
@@ -314,7 +315,7 @@ exports.getMyWonderBox = async (req, res, next) => {
 exports.deleteMyWonderBox = async (req, res, next) => {
   const { userId } = req.user;
   try {
-    const calendarId = req.params.calendarId;
+    const { calendarId } = req.params;
     const calendar = await Calendar.findById(calendarId).lean();
 
     if (!calendar) {
@@ -335,5 +336,150 @@ exports.deleteMyWonderBox = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
+};
+
+exports.postStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+      return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
+    }
+
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    uploadFiles.single('image')(req, res, async (error) => {
+      if (error) {
+        return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
+      }
+      const { titleFont, titleColor, borderColor } = req.body;
+
+      const boxStyle = req.body.box || {};
+
+      const bgImage = req.file.location;
+
+      const styleData = {
+        titleFont,
+        titleColor,
+        borderColor,
+        bgImage,
+        box: boxStyle,
+      };
+
+      if (!styleData) {
+        return next(new HttpError(400, ERRORS.CALENDAR.FAILED_STYLE));
+      }
+
+      await Calendar.updateOne(
+        { _id: calendarId },
+        { $addToSet: { style: styleData }, $set: { createdAt: new Date() } },
+      );
+
+      return res.status(200).json({
+        result: 'ok',
+        calendars: calendarId,
+        message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    handleErrors(error, next);
+  }
+};
+
+exports.getStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    const calendar = await Calendar.findById(calendarId).lean();
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    if (calendar.userId.toString() !== userId) {
+      return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+    }
+
+    const { style } = calendar;
+
+    if (!style) {
+      return next(new HttpError(404, ERRORS.CALENDAR.STYLE_NOT_FOUND));
+    }
+
+    return res.status(200).json({ result: 'ok', style });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
+  }
+};
+
+exports.putStyle = async (req, res, next) => {
+  const { userId } = req.user;
+
+  try {
+    const { calendarId } = req.params;
+
+    uploadFiles.single('image')(req, res, async (error) => {
+      if (error) {
+        return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
+      }
+
+      const calendar = await Calendar.findById(calendarId).lean();
+
+      if (!calendar) {
+        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+      }
+
+      if (calendar.userId.toString() !== userId) {
+        return next(new HttpError(403, ERRORS.AUTH.UNAUTHORIZED));
+      }
+
+      const oldUrl = calendar.style.bgImage || calendar.style[0].bgImage;
+
+      if (oldUrl) {
+        const oldKey = oldUrl.split('/').pop();
+        const decodedKey = decodeURIComponent(oldKey);
+
+        await deleteFileFromS3(`image/${decodedKey}`);
+      }
+
+      const updateStyles = { ...req.body };
+
+      const boxStyle = req.body.box || {};
+
+      const updateBgImage = req.file.location;
+
+      const updatedStyle = {
+        titleFont: updateStyles.titleFont,
+        titleColor: updateStyles.titleColor,
+        borderColor: updateStyles.borderColor,
+        bgImage: updateBgImage,
+        box: boxStyle,
+      };
+
+      await Calendar.updateOne(
+        { _id: calendarId },
+        { $set: { style: updatedStyle } },
+      );
+
+      return res
+        .status(200)
+        .json({ result: 'ok', message: ERRORS.CALENDAR.UPDATE_SUCCESS });
+    });
+  } catch (error) {
+    console.error(error);
+    handleErrors(error, next);
   }
 };
