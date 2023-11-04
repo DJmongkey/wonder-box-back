@@ -33,7 +33,7 @@ exports.postBaseInfo = async (req, res, next) => {
   const { userId } = req.user;
 
   try {
-    const { title, creator, createdAt, startDate, endDate, options } = req.body;
+    const { title, creator, startDate, endDate, options } = req.body;
     const diffDay = getMonthDiff(startDate, endDate);
 
     const user = await User.findById(userId).lean();
@@ -53,7 +53,6 @@ exports.postBaseInfo = async (req, res, next) => {
     const calendar = await Calendar.create({
       title,
       creator,
-      createdAt,
       startDate,
       endDate,
       options,
