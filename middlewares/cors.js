@@ -1,6 +1,6 @@
 module.exports = (req, res, next) => {
   const allowedOrigins = [`${process.env.LOCAL_ORIGIN}`];
-  const origin = req.headers.origin;
+  const { origin } = req.headers;
 
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
