@@ -380,13 +380,13 @@ exports.postStyle = async (req, res, next) => {
       }
 
       await Calendar.updateOne(
-        { _id: calendar._id },
+        { _id: calendarId },
         { $addToSet: { style: styleData } },
       );
 
       return res.status(200).json({
         result: 'ok',
-        calendars: calendar._id,
+        calendars: calendarId,
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
       });
     });
