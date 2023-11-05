@@ -15,6 +15,7 @@ const {
   postStyle,
   getStyle,
   putStyle,
+  postShareLink,
 } = require('../controllers/calendarController');
 const { verifyToken } = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
@@ -44,5 +45,7 @@ router.put('/:calendarId/style', verifyToken, checkFileSize, putStyle);
 
 router.get('/', verifyToken, getMyWonderBox);
 router.delete('/:calendarId', verifyToken, deleteMyWonderBox);
+
+router.post('/:calendarId/share', verifyToken, postShareLink);
 
 module.exports = router;
