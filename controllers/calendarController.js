@@ -284,7 +284,7 @@ exports.postStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
-      const { titleFont, titleColor, borderColor } = req.body;
+      const { titleFont, titleColor, backgroundColor, borderColor } = req.body;
 
       const boxStyle = req.body.box || {};
 
@@ -293,6 +293,7 @@ exports.postStyle = async (req, res, next) => {
       const styleData = {
         titleFont,
         titleColor,
+        backgroundColor,
         borderColor,
         bgImage,
         box: boxStyle,
@@ -363,6 +364,7 @@ exports.putStyle = async (req, res, next) => {
       const updatedStyle = {
         titleFont: updateStyles.titleFont,
         titleColor: updateStyles.titleColor,
+        backgroundColor: updateStyles.backgroundColor,
         borderColor: updateStyles.borderColor,
         bgImage: updateBgImage,
         box: boxStyle,
