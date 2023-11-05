@@ -54,6 +54,28 @@ exports.postBaseInfo = async (req, res, next) => {
       return next(new HttpError(400, ERRORS.CALENDAR.NOT_FOUND));
     }
 
+    const dailyBoxes = [];
+    const currentDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+
+    while (currentDate <= lastDate) {
+      const dailyBox = await DailyBox.create({
+        date: currentDate,
+        content: {},
+        isOpen: true,
+      });
+
+      if (dailyBox) {
+        dailyBoxes.push(dailyBox._id);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    calendar.dailyBoxes = dailyBoxes;
+
+    await calendar.save();
+
     await User.updateOne(
       { _id: userId },
       { $addToSet: { calendars: calendar._id } },
