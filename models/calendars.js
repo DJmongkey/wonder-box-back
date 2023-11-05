@@ -27,6 +27,10 @@ const styleSchema = new mongoose.Schema({
     type: String,
     required: [true, '제목 색상을 지정해주세요.'],
   },
+  backgroundColor: {
+    type: String,
+    required: [true, '제목의 배경 색상을 지정해주세요.'],
+  },
   borderColor: {
     type: String,
     required: [true, '제목의 테두리 색상을 지정해주세요.'],
