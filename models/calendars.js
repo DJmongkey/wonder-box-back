@@ -35,7 +35,7 @@ const styleSchema = new mongoose.Schema({
     type: String,
     required: [true, '제목의 테두리 색상을 지정해주세요.'],
   },
-  bgImage: {
+  image: {
     type: String,
     required: [true, '배경 이미지를 지정해주세요.'],
     validate: {
