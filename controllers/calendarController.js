@@ -361,8 +361,6 @@ exports.putStyle = async (req, res, next) => {
 
       const boxStyle = req.body.box || {};
 
-      // const updateImage = req.file.location;
-
       const updatedStyle = {
         titleFont: updateStyles.titleFont,
         titleColor: updateStyles.titleColor,
