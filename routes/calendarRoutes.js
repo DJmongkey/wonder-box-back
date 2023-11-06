@@ -15,7 +15,6 @@ const {
   postStyle,
   getStyle,
   putStyle,
-  postShareLink,
 } = require('../controllers/calendarController');
 const {
   verifyToken,
@@ -91,13 +90,6 @@ router.delete(
   verifyToken,
   checkCalendarAuthorization,
   deleteMyWonderBox,
-);
-
-router.post(
-  '/:calendarId/share',
-  verifyToken,
-  checkCalendarAuthorization,
-  postShareLink,
 );
 
 module.exports = router;
