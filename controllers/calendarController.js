@@ -144,7 +144,7 @@ exports.postDailyBoxes = [
       if (dailyBox._id.toString() !== dailyBoxId) {
         return next(new HttpError(404, ERRORS.AUTH.UNAUTHORIZED));
       }
-      
+
       const fileUploadAll = ['image', 'video', 'audio'].map(async (type) => {
         if (files[type]) {
           updatedContent[type] = files[type][0].location;
@@ -432,6 +432,29 @@ exports.putStyle = async (req, res, next) => {
   }
 };
 
+exports.getShareLink = async (req, res, next) => {
+  try {
+    const { calendarId } = req.params;
+
+    const calendar = await Calendar.findById(calendarId).populate('dailyBoxes');
+
+    if (!calendar) {
+      return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+    }
+
+    const { dailyBoxes } = calendar;
+
+    if (!dailyBoxes) {
+      return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
+    }
+
+    return res.status(200).json({ result: 'ok', calendar, dailyBoxes });
+  } catch (error) {
+    console.error(error);
+    return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
+  }
+};
+
 function generateShareLink(calendarId) {
-  return `https://mywonder.com/calendars/${calendarId}/share`;
+  return `${process.env.LOCAL_ORIGIN}/calendars/${calendarId}/share`;
 }
