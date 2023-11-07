@@ -381,10 +381,6 @@ exports.putStyle = async (req, res, next) => {
 
       const oldUrl = calendar.style.image || calendar.style[0].image;
 
-      const isImageUploaded = req.file && req.file.location;
-
-      const oldUrl = calendar.style.image || calendar.style[0].image;
-
       const updateImage = isImageUploaded ? req.file.location : oldUrl;
 
       if (oldUrl !== updateImage) {
