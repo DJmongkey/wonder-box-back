@@ -131,7 +131,7 @@ exports.postDailyBoxes = [
     const { userId } = req.user;
 
     try {
-      const { date, isOpen } = req.body;
+      const { dailyBoxId } = req.body;
       const updatedContent = req.body.content || {};
 
       const { files } = req;
@@ -148,6 +148,16 @@ exports.postDailyBoxes = [
         return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
       }
 
+      const dailyBox = await DailyBox.findById(dailyBoxId).lean();
+
+      if (!dailyBox) {
+        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
+      }
+
+      if (dailyBox._id.toString() !== dailyBoxId) {
+        return next(new HttpError(404, ERRORS.AUTH.UNAUTHORIZED));
+      }
+
       const fileUploadAll = ['image', 'video', 'audio'].map(async (type) => {
         if (files[type]) {
           updatedContent[type] = files[type][0].location;
@@ -156,15 +166,9 @@ exports.postDailyBoxes = [
 
       await Promise.all(fileUploadAll);
 
-      const dailyBox = await DailyBox.create({
-        date,
-        content: updatedContent,
-        isOpen,
-      });
-
-      await Calendar.updateOne(
-        { _id: calendar._id },
-        { $addToSet: { dailyBoxes: dailyBox._id } },
+      await DailyBox.updateOne(
+        { _id: dailyBoxId },
+        { $set: { content: { ...dailyBox.content, ...updatedContent } } },
       );
 
       return res.status(201).json({

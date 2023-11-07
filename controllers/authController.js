@@ -87,15 +87,21 @@ exports.login = async (req, res, next) => {
 };
 
 exports.logout = async (req, res, next) => {
-  res.cookie('refreshToken', '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    sameSite: 'strict',
-    maxAge: 0,
-  });
+  try {
+    res.cookie('refreshToken', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      sameSite: 'strict',
+      maxAge: 0,
+    });
 
-  res.status(200).json({ result: 'ok', message: ERRORS.AUTH.LOGOUT_SUCCESS });
+    res.status(200).json({ result: 'ok', message: ERRORS.AUTH.LOGOUT_SUCCESS });
+  } catch (error) {
+    console.error(error);
+
+    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+  }
 };
 
 exports.refresh = async (req, res, next) => {

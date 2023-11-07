@@ -16,7 +16,7 @@ const LIMITS = {
 const MIME_TYPES = {
   image: ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'],
   video: ['video/mp4', 'video/x-matroska', 'video/quicktime', 'video/webm'],
-  audio: ['audio/mpeg', 'audio/wav'],
+  audio: ['audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/oog'],
 };
 
 const S3 = new S3Client({
@@ -27,7 +27,7 @@ const S3 = new S3Client({
   },
 });
 
-function fileFilter(req, file, cb) {
+function filterMimeTypes(req, file, cb) {
   const allowedMimes = MIME_TYPES[file.fieldname];
 
   if (!allowedMimes || !allowedMimes.includes(file.mimetype)) {
@@ -49,7 +49,7 @@ exports.uploadFiles = multer({
       cb(null, filename);
     },
   }),
-  fileFilter: fileFilter,
+  fileFilter: filterMimeTypes,
   limits: {
     fileSize: Math.max(...Object.values(LIMITS)),
   },
