@@ -54,6 +54,28 @@ exports.postBaseInfo = async (req, res, next) => {
       return next(new HttpError(400, ERRORS.CALENDAR.NOT_FOUND));
     }
 
+    const dailyBoxes = [];
+    const currentDate = new Date(startDate);
+    const lastDate = new Date(endDate);
+
+    while (currentDate <= lastDate) {
+      const dailyBox = await DailyBox.create({
+        date: currentDate,
+        content: {},
+        isOpen: true,
+      });
+
+      if (dailyBox) {
+        dailyBoxes.push(dailyBox._id);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    calendar.dailyBoxes = dailyBoxes;
+
+    await calendar.save();
+
     await User.updateOne(
       { _id: userId },
       { $addToSet: { calendars: calendar._id } },
@@ -284,6 +306,7 @@ exports.postStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
+      
       const { titleFont, titleColor, borderColor, backgroundColor } = req.body;
 
       const boxStyle = req.body.box || {};
@@ -293,8 +316,8 @@ exports.postStyle = async (req, res, next) => {
       const styleData = {
         titleFont,
         titleColor,
-        borderColor,
         backgroundColor,
+        borderColor,
         image,
         box: boxStyle,
       };
@@ -333,7 +356,6 @@ exports.postStyle = async (req, res, next) => {
 exports.getStyle = async (req, res, next) => {
   try {
     const { calendar } = req;
-
     const { style } = calendar;
 
     if (!style) {
@@ -355,6 +377,9 @@ exports.putStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
+      const isImageUploaded = req.file && req.file.location;
+
+      const oldUrl = calendar.style.image || calendar.style[0].image;
 
       const isImageUploaded = req.file && req.file.location;
 
@@ -376,8 +401,8 @@ exports.putStyle = async (req, res, next) => {
       const updatedStyle = {
         titleFont: updateStyles.titleFont,
         titleColor: updateStyles.titleColor,
-        borderColor: updateStyles.borderColor,
         backgroundColor: updateStyles.backgroundColor,
+        borderColor: updateStyles.borderColor,
         image: updateImage,
         box: boxStyle,
       };
