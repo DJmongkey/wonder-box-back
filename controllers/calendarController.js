@@ -310,14 +310,14 @@ exports.postStyle = async (req, res, next) => {
 
       const boxStyle = req.body.box || {};
 
-      const bgImage = req.file.location;
+      const image = req.file.location;
 
       const styleData = {
         titleFont,
         titleColor,
         backgroundColor,
         borderColor,
-        bgImage,
+        image,
         box: boxStyle,
       };
 
@@ -345,7 +345,6 @@ exports.postStyle = async (req, res, next) => {
 exports.getStyle = async (req, res, next) => {
   try {
     const { calendar } = req;
-
     const { style } = calendar;
 
     if (!style) {
@@ -367,10 +366,13 @@ exports.putStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
+      const isImageUploaded = req.file && req.file.location;
 
-      const oldUrl = calendar.style.bgImage || calendar.style[0].bgImage;
+      const oldUrl = calendar.style.image || calendar.style[0].image;
 
-      if (oldUrl) {
+      const updateImage = isImageUploaded ? req.file.location : oldUrl;
+
+      if (oldUrl !== updateImage) {
         const oldKey = oldUrl.split('/').pop();
         const decodedKey = decodeURIComponent(oldKey);
 
@@ -381,14 +383,12 @@ exports.putStyle = async (req, res, next) => {
 
       const boxStyle = req.body.box || {};
 
-      const updateBgImage = req.file.location;
-
       const updatedStyle = {
         titleFont: updateStyles.titleFont,
         titleColor: updateStyles.titleColor,
         backgroundColor: updateStyles.backgroundColor,
         borderColor: updateStyles.borderColor,
-        bgImage: updateBgImage,
+        image: updateImage,
         box: boxStyle,
       };
 
