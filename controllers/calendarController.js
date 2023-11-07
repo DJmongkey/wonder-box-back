@@ -316,7 +316,7 @@ exports.postStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
-      
+
       const { titleFont, titleColor, borderColor, backgroundColor } = req.body;
 
       const boxStyle = req.body.box || {};
@@ -391,10 +391,6 @@ exports.putStyle = async (req, res, next) => {
 
       const oldUrl = calendar.style.image || calendar.style[0].image;
 
-      const isImageUploaded = req.file && req.file.location;
-
-      const oldUrl = calendar.style.image || calendar.style[0].image;
-
       const updateImage = isImageUploaded ? req.file.location : oldUrl;
 
       if (oldUrl !== updateImage) {
@@ -435,3 +431,7 @@ exports.putStyle = async (req, res, next) => {
     handleErrors(error, next);
   }
 };
+
+function generateShareLink(calendarId) {
+  return `https://mywonder.com/calendars/${calendarId}/share`;
+}
