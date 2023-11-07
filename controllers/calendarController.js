@@ -306,7 +306,8 @@ exports.postStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
-      const { titleFont, titleColor, backgroundColor, borderColor } = req.body;
+      
+      const { titleFont, titleColor, borderColor, backgroundColor } = req.body;
 
       const boxStyle = req.body.box || {};
 
@@ -325,15 +326,25 @@ exports.postStyle = async (req, res, next) => {
         return next(new HttpError(400, ERRORS.CALENDAR.FAILED_STYLE));
       }
 
+      const shareUrl = generateShareLink(calendarId);
+
+      if (!shareUrl) {
+        return next(new HttpError(400, ERRORS.CALENDAR.FAILED_SHARE_LINK));
+      }
+
       await Calendar.updateOne(
         { _id: calendarId },
-        { $addToSet: { style: styleData }, $set: { createdAt: new Date() } },
+        {
+          $addToSet: { style: styleData },
+          $set: { createdAt: new Date(), shareUrl },
+        },
       );
 
       return res.status(200).json({
         result: 'ok',
         calendars: calendarId,
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+        shareUrl,
       });
     });
   } catch (error) {
@@ -370,6 +381,10 @@ exports.putStyle = async (req, res, next) => {
 
       const oldUrl = calendar.style.image || calendar.style[0].image;
 
+      const isImageUploaded = req.file && req.file.location;
+
+      const oldUrl = calendar.style.image || calendar.style[0].image;
+
       const updateImage = isImageUploaded ? req.file.location : oldUrl;
 
       if (oldUrl !== updateImage) {
@@ -392,43 +407,21 @@ exports.putStyle = async (req, res, next) => {
         box: boxStyle,
       };
 
+      const { shareUrl } = calendar;
+
       await Calendar.updateOne(
         { _id: calendarId },
         { $set: { style: updatedStyle } },
       );
 
-      return res
-        .status(200)
-        .json({ result: 'ok', message: ERRORS.CALENDAR.UPDATE_SUCCESS });
+      return res.status(200).json({
+        result: 'ok',
+        message: ERRORS.CALENDAR.UPDATE_SUCCESS,
+        shareUrl,
+      });
     });
   } catch (error) {
     console.error(error);
     handleErrors(error, next);
   }
 };
-
-exports.postShareLink = async (req, res, next) => {
-  try {
-    const { calendarId } = req;
-
-    const shareUrl = generateShareLink(calendarId);
-
-    if (!shareUrl) {
-      return next(new HttpError(400, ERRORS.CALENDAR.FAILED_SHARE_LINK));
-    }
-
-    await Calendar.updateOne({ _id: calendarId }, { $set: { shareUrl } });
-
-    return res.status(200).json({
-      result: 'ok',
-      shareLink: shareUrl,
-    });
-  } catch (error) {
-    console.error(error);
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
-  }
-};
-
-function generateShareLink(calendarId) {
-  return `https://mywonder.com/calendars/${calendarId}/share`;
-}
