@@ -16,33 +16,80 @@ const {
   getStyle,
   putStyle,
 } = require('../controllers/calendarController');
-const { verifyToken } = require('../middlewares/auth');
+const {
+  verifyToken,
+  checkCalendarAuthorization,
+} = require('../middlewares/auth');
 const { checkFileSize } = require('../middlewares/multer');
 
 router.post('/', verifyToken, postBaseInfo);
-router.get('/:calendarId/base-info', verifyToken, getBaseInfo);
-router.put('/:calendarId/base-info', verifyToken, putBaseInfo);
+router.get(
+  '/:calendarId/base-info',
+  verifyToken,
+  checkCalendarAuthorization,
+  getBaseInfo,
+);
+router.put(
+  '/:calendarId/base-info',
+  verifyToken,
+  checkCalendarAuthorization,
+  putBaseInfo,
+);
 
 router.post(
   '/:calendarId/daily-boxes',
   verifyToken,
   checkFileSize,
+  checkCalendarAuthorization,
   postDailyBoxes,
 );
-router.get('/:calendarId/daily-boxes', verifyToken, getAllBoxes);
-router.get('/:calendarId/daily-boxes/:dailyBoxId', verifyToken, getDailyBoxes);
+router.get(
+  '/:calendarId/daily-boxes',
+  verifyToken,
+  checkCalendarAuthorization,
+  getAllBoxes,
+);
+router.get(
+  '/:calendarId/daily-boxes/:dailyBoxId',
+  verifyToken,
+  checkCalendarAuthorization,
+  getDailyBoxes,
+);
 router.put(
   '/:calendarId/daily-boxes/:dailyBoxId',
   verifyToken,
+  checkCalendarAuthorization,
   checkFileSize,
   putDailyBoxes,
 );
 
-router.post('/:calendarId/style', verifyToken, checkFileSize, postStyle);
-router.get('/:calendarId/style', verifyToken, getStyle);
-router.put('/:calendarId/style', verifyToken, checkFileSize, putStyle);
+router.post(
+  '/:calendarId/style',
+  verifyToken,
+  checkCalendarAuthorization,
+  checkFileSize,
+  postStyle,
+);
+router.get(
+  '/:calendarId/style',
+  verifyToken,
+  checkCalendarAuthorization,
+  getStyle,
+);
+router.put(
+  '/:calendarId/style',
+  verifyToken,
+  checkCalendarAuthorization,
+  checkFileSize,
+  putStyle,
+);
 
 router.get('/', verifyToken, getMyWonderBox);
-router.delete('/:calendarId', verifyToken, deleteMyWonderBox);
+router.delete(
+  '/:calendarId',
+  verifyToken,
+  checkCalendarAuthorization,
+  deleteMyWonderBox,
+);
 
 module.exports = router;
