@@ -6,9 +6,8 @@ const imagePathRegex = /^.*\.(jpg|jpeg|png|gif)$/;
 const videoUrlRegex = /^(ftp|http|https):\/\/[^ "]+\.(mp4|avi|mkv|webm|mov)$/;
 const videoPathRegex = /^.*\.(mp4|avi|mkv|webm|mov)$/;
 
-const audioUrlRegex =
-  /^(ftp|http|https):\/\/[^ "]+\.(mp3|wav|ogg|flac|wmv|avi|mpg|mov|mkv|mp4|webm)$/;
-const audioPathRegex = /^.*\.(mp3|wav|ogg|flac|wmv|avi|mpg|mov|mkv|mp4|webm)$/;
+const audioUrlRegex = /^(ftp|http|https):\/\/[^ "]+\.(mpeg|mp4|wav|ogg)$/;
+const audioPathRegex = /^.*\.(mpeg|mp4|wav|ogg)$/;
 
 const contentSchema = new mongoose.Schema({
   text: {
