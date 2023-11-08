@@ -1,11 +1,11 @@
 const User = require('../models/users');
 const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
+const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
+const { getMonthDiff } = require('../utils/date');
+const { handleErrors } = require('../utils/errorHandlers');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
-const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
-const { getMonthDiff } = require('../utils/mothDiff');
-const { handleErrors } = require('../utils/errorHandlers');
 
 const TWO_DAYS_DIFFERENCE = 2;
 
@@ -22,7 +22,6 @@ exports.getBaseInfo = async (req, res, next) => {
 exports.postBaseInfo = async (req, res, next) => {
   try {
     const { userId } = req.user;
-
     const { title, creator, startDate, endDate, options } = req.body;
 
     const diffDay = getMonthDiff(startDate, endDate);
@@ -60,6 +59,7 @@ exports.postBaseInfo = async (req, res, next) => {
 
     while (currentDate <= lastDate) {
       const dailyBox = await DailyBox.create({
+        calendarId: calendar._id,
         date: currentDate,
         content: {},
         isOpen: true,
@@ -115,25 +115,11 @@ exports.postDailyBoxes = [
     { name: 'audio', maxCount: 1 },
   ]),
   async (req, res, next) => {
-    const { calendarId, userId } = req;
-
     try {
       const { dailyBoxId } = req.body;
       const updatedContent = req.body.content || {};
 
       const { files } = req;
-
-      const user = await User.findById(userId).lean();
-
-      if (!user) {
-        return next(new HttpError(404, ERRORS.AUTH.USER_NOT_FOUND));
-      }
-
-      const calendar = await Calendar.findById(req.params.calendarId).lean();
-
-      if (!calendar) {
-        return next(new HttpError(404, ERRORS.CALENDAR.NOT_FOUND));
-      }
 
       const dailyBox = await DailyBox.findById(dailyBoxId).lean();
 
@@ -160,7 +146,7 @@ exports.postDailyBoxes = [
 
       return res.status(201).json({
         result: 'ok',
-        dailyBoxId: dailyBox._id,
+        dailyBoxId,
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
       });
     } catch (error) {
@@ -228,11 +214,8 @@ exports.putDailyBoxes = [
 
           updatedContent[type] = file.location;
 
-          if (oldUrl) {
-            const oldKey = oldUrl.split('/').pop();
-            const decodedKey = decodeURIComponent(oldKey);
-
-            await deleteFileFromS3(`image/${decodedKey}`);
+          if (oldUrl.startsWith(process.env.S3_BASE_URL)) {
+            deleteFileFromS3(oldUrl);
           }
         }
       });
@@ -295,6 +278,20 @@ exports.deleteMyWonderBox = async (req, res, next) => {
   try {
     const { calendarId, userId } = req;
 
+    const dailyBoxes = await DailyBox.find({ calendarId }).lean();
+
+    const deleteAll = dailyBoxes.map((box) => {
+      const deleteImage = deleteFileFromS3(box.content.image);
+      const deleteVideo = deleteFileFromS3(box.content.video);
+      const deleteAudio = deleteFileFromS3(box.content.audio);
+
+      return Promise.all([deleteImage, deleteVideo, deleteAudio]);
+    });
+
+    await Promise.all(deleteAll);
+
+    await DailyBox.deleteMany({ calendarId });
+
     await Calendar.findByIdAndDelete(calendarId);
 
     await User.updateOne({ _id: userId }, { $pull: { calendars: calendarId } });
@@ -304,35 +301,39 @@ exports.deleteMyWonderBox = async (req, res, next) => {
       .json({ result: 'ok', message: ERRORS.CALENDAR.DELETE_SUCCESS });
   } catch (error) {
     console.error(error);
-    return next(new HttpError(500, ERRORS.PROCESS_ERR));
+    return next(new HttpError(500, ERRORS.CALENDAR.FAILED_DELETE));
   }
 };
 
 exports.postStyle = async (req, res, next) => {
   try {
     const { calendarId } = req;
+    const { file } = req;
 
     uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
 
-      const { titleFont, titleColor, borderColor, backgroundColor } = req.body;
-
-      const boxStyle = req.body.box || {};
-
-      const image = req.file.location;
-
-      const styleData = {
+      const {
         titleFont,
         titleColor,
-        backgroundColor,
         borderColor,
+        backgroundColor,
         image,
-        box: boxStyle,
+        box,
+      } = req.body;
+
+      const style = {
+        titleFont,
+        titleColor,
+        borderColor,
+        backgroundColor,
+        image: file?.location || image,
+        box,
       };
 
-      if (!styleData) {
+      if (!style) {
         return next(new HttpError(400, ERRORS.CALENDAR.FAILED_STYLE));
       }
 
@@ -344,9 +345,8 @@ exports.postStyle = async (req, res, next) => {
 
       await Calendar.updateOne(
         { _id: calendarId },
-        {
-          $set: { style: styleData, createdAt: new Date(), shareUrl },
-        },
+
+        { $set: { style, createdAt: new Date(), shareUrl } },
       );
 
       return res.status(200).json({
@@ -364,8 +364,7 @@ exports.postStyle = async (req, res, next) => {
 
 exports.getStyle = async (req, res, next) => {
   try {
-    const { calendar } = req;
-    const { style } = calendar;
+    const { style = {} } = req.calendar;
 
     if (!style) {
       return next(new HttpError(404, ERRORS.CALENDAR.STYLE_NOT_FOUND));
@@ -386,37 +385,25 @@ exports.putStyle = async (req, res, next) => {
       if (error) {
         return next(new HttpError(500, ERRORS.CALENDAR.FAILED_UPLOAD));
       }
-      const isImageUploaded = req.file && req.file.location;
 
-      const oldUrl = calendar.style.image || calendar.style[0].image;
+      const uploadedFile = req.file?.location;
+      const oldUrl = calendar.style.image;
 
-      const updateImage = isImageUploaded ? req.file.location : oldUrl;
-
-      if (oldUrl !== updateImage) {
-        const oldKey = oldUrl.split('/').pop();
-        const decodedKey = decodeURIComponent(oldKey);
-
-        await deleteFileFromS3(`image/${decodedKey}`);
+      if (oldUrl.startsWith(process.env.S3_BASE_URL)) {
+        deleteFileFromS3(oldUrl);
       }
 
       const updateStyles = { ...req.body };
 
-      const boxStyle = req.body.box || {};
-
-      const updatedStyle = {
-        titleFont: updateStyles.titleFont,
-        titleColor: updateStyles.titleColor,
-        backgroundColor: updateStyles.backgroundColor,
-        borderColor: updateStyles.borderColor,
-        image: updateImage,
-        box: boxStyle,
-      };
+      if (uploadedFile) {
+        updateStyles.image = uploadedFile;
+      }
 
       const { shareUrl } = calendar;
 
       await Calendar.updateOne(
         { _id: calendarId },
-        { $set: { style: updatedStyle } },
+        { $set: { style: updateStyles } },
       );
 
       return res.status(200).json({
