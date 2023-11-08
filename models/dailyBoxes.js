@@ -43,6 +43,10 @@ const contentSchema = new mongoose.Schema({
 });
 
 const dailyBoxSchema = new mongoose.Schema({
+  calendarId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Calendar',
+  },
   date: {
     type: Date,
     required: [true, '날짜가 지정되어 있지 않습니다.'],
