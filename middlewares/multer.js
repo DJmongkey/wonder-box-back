@@ -44,7 +44,7 @@ exports.uploadFiles = multer({
     cacheControl: `max-age=${ONE_MONTH}`,
     acl: 'public-read',
     key: (req, file, cb) => {
-      const filePrefix = `${file.fieldname}/${Date.now().toString()}`;
+      const filePrefix = `${file.fieldname}/${req.params.calendarId}`;
       const filename = `${filePrefix}_${file.originalname}`;
       cb(null, filename);
     },
@@ -89,17 +89,19 @@ exports.checkFileSize = async (req, res, next) => {
   }
 };
 
-exports.deleteFileFromS3 = async (fileKey) => {
-  try {
-    const deleteCommand = new DeleteObjectCommand({
-      Bucket: 'wonderbox',
-      Key: fileKey,
-    });
-    await S3.send(deleteCommand);
+exports.deleteFileFromS3 = async (url) => {
+  if (!url) return;
+  const pathname = decodeURIComponent(new URL(url).pathname);
+  const s3Key = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+  const deleteCommand = new DeleteObjectCommand({
+    Bucket: 'wonderbox',
+    Key: s3Key,
+  });
 
-    console.log(`${fileKey} 삭제 완료`);
+  try {
+    const res = await S3.send(deleteCommand);
+    return res;
   } catch (error) {
-    console.error(error);
-    throw new HttpError(500, ERRORS.PROCESS_ERR);
+    throw new HttpError(500, ERRORS.CALENDAR.FAILED_DELETE);
   }
 };
