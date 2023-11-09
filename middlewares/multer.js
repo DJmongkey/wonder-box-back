@@ -9,7 +9,7 @@ const ONE_MONTH = 2678400;
 
 const LIMITS = {
   image: 5 * 1024 * 1024,
-  video: 100 * 1024 * 1024,
+  video: 50 * 1024 * 1024,
   audio: 20 * 1024 * 1024,
 };
 
