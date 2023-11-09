@@ -90,7 +90,9 @@ exports.checkFileSize = async (req, res, next) => {
 };
 
 exports.deleteFileFromS3 = async (url) => {
-  if (!url) return;
+  if (!url) {
+    return;
+  }
   const pathname = decodeURIComponent(new URL(url).pathname);
   const s3Key = pathname.startsWith('/') ? pathname.slice(1) : pathname;
   const deleteCommand = new DeleteObjectCommand({

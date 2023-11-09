@@ -92,7 +92,7 @@ const calendarSchema = new mongoose.Schema({
     },
   ],
   dailyBoxes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'DailyBox' }],
-  shareUrl: {
+  sharedUrl: {
     type: String,
   },
 });
