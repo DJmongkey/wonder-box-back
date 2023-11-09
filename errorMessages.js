@@ -35,6 +35,6 @@ module.exports = {
     FAILED_STYLE: '스타일 저장에 실패했습니다. 다시 한 번 시도해주세요',
     NEED_BG_IMAGE: '스타일 저장에 실패했습니다. 다시 한 번 시도해주세요',
     STYLE_NOT_FOUND: '지정한 스타일 정보를 찾을 수 없습니다.',
-    FAILED_SHARE_LINK: '공유 링크를 생성 할 수 없습니다',
+    FAILED_CREATE_LINK: '공유 링크를 생성 할 수 없습니다',
   },
 };

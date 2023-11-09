@@ -150,7 +150,7 @@ exports.postDailyBoxes = [
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       handleErrors(error, next);
     }
   },
@@ -212,9 +212,9 @@ exports.putDailyBoxes = [
           const file = files[type][0];
           const oldUrl = dailyBox.content[type];
 
-          updatedContent[type] = file.location;
+          updatedContent[type] = file?.location;
 
-          if (oldUrl.startsWith(process.env.S3_BASE_URL)) {
+          if (oldUrl?.startsWith(process.env.S3_BASE_URL)) {
             deleteFileFromS3(oldUrl);
           }
         }
@@ -262,7 +262,7 @@ exports.getMyWonderBox = async (req, res, next) => {
           createdAt: calendar.createdAt,
           startDate: calendar.startDate,
           endDate: calendar.endDate,
-          shareUrl: calendar.shareUrl,
+          sharedUrl: calendar.sharedUrl,
         };
       }),
     );
@@ -337,27 +337,27 @@ exports.postStyle = async (req, res, next) => {
         return next(new HttpError(400, ERRORS.CALENDAR.FAILED_STYLE));
       }
 
-      const shareUrl = generateShareLink(calendarId);
+      const sharedUrl = generateSharingLink(calendarId);
 
-      if (!shareUrl) {
-        return next(new HttpError(400, ERRORS.CALENDAR.FAILED_SHARE_LINK));
+      if (!sharedUrl) {
+        return next(new HttpError(400, ERRORS.CALENDAR.FAILED_CREATE_LINK));
       }
 
       await Calendar.updateOne(
         { _id: calendarId },
 
-        { $set: { style, createdAt: new Date(), shareUrl } },
+        { $set: { style, createdAt: new Date(), sharedUrl } },
       );
 
       return res.status(200).json({
         result: 'ok',
         calendars: calendarId,
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
-        shareUrl,
+        sharedUrl,
       });
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     handleErrors(error, next);
   }
 };
@@ -389,7 +389,7 @@ exports.putStyle = async (req, res, next) => {
       const uploadedFile = req.file?.location;
       const oldUrl = calendar.style.image;
 
-      if (oldUrl.startsWith(process.env.S3_BASE_URL)) {
+      if (oldUrl?.startsWith(process.env.S3_BASE_URL)) {
         deleteFileFromS3(oldUrl);
       }
 
@@ -399,7 +399,7 @@ exports.putStyle = async (req, res, next) => {
         updateStyles.image = uploadedFile;
       }
 
-      const { shareUrl } = calendar;
+      const { sharedUrl } = calendar;
 
       await Calendar.updateOne(
         { _id: calendarId },
@@ -409,7 +409,7 @@ exports.putStyle = async (req, res, next) => {
       return res.status(200).json({
         result: 'ok',
         message: ERRORS.CALENDAR.UPDATE_SUCCESS,
-        shareUrl,
+        sharedUrl,
       });
     });
   } catch (error) {
@@ -418,7 +418,7 @@ exports.putStyle = async (req, res, next) => {
   }
 };
 
-exports.getShareLink = async (req, res, next) => {
+exports.getSharingLink = async (req, res, next) => {
   try {
     const { calendarId } = req.params;
     const calendar = await Calendar.findById(calendarId).populate('dailyBoxes');
@@ -443,6 +443,6 @@ exports.getShareLink = async (req, res, next) => {
   }
 };
 
-function generateShareLink(calendarId) {
+function generateSharingLink(calendarId) {
   return `${process.env.LOCAL_ORIGIN}/calendars/${calendarId}/share`;
 }
