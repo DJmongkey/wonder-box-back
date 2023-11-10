@@ -2,7 +2,7 @@ const User = require('../models/users');
 const Calendar = require('../models/calendars');
 const DailyBox = require('../models/dailyBoxes');
 const { uploadFiles, deleteFileFromS3 } = require('../middlewares/multer');
-const { getMonthDiff } = require('../utils/date');
+const { getMonthDiff, formatDateKrTime } = require('../utils/date');
 const { handleErrors } = require('../utils/errorHandlers');
 const HttpError = require('./httpError');
 const ERRORS = require('../errorMessages');
@@ -22,7 +22,8 @@ exports.getBaseInfo = async (req, res, next) => {
 exports.postBaseInfo = async (req, res, next) => {
   try {
     const { userId } = req.user;
-    const { title, creator, startDate, endDate, options } = req.body;
+    const { title, creator, startDate, endDate, options, localDailyBox } =
+      req.body;
 
     const diffDay = getMonthDiff(startDate, endDate);
 
@@ -58,10 +59,19 @@ exports.postBaseInfo = async (req, res, next) => {
     const lastDate = new Date(endDate);
 
     while (currentDate <= lastDate) {
+      let content = {};
+
+      if (localDailyBox) {
+        const localBox = localDailyBox.find(
+          (box) => box.date === formatDateKrTime(currentDate),
+        );
+        content = localBox ? localBox.content : {};
+      }
+
       const dailyBox = await DailyBox.create({
         calendarId: calendar._id,
         date: currentDate,
-        content: {},
+        content,
         isOpen: true,
       });
 
@@ -385,7 +395,7 @@ exports.putStyle = async (req, res, next) => {
       }
 
       const uploadedFile = req.file?.location;
-      const oldUrl = calendar.style.image;
+      const oldUrl = calendar.style?.image;
 
       if (oldUrl?.startsWith(process.env.S3_BASE_URL)) {
         deleteFileFromS3(oldUrl);
