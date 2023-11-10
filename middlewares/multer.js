@@ -8,15 +8,15 @@ const HttpError = require('../controllers/httpError');
 const ONE_MONTH = 2678400;
 
 const LIMITS = {
-  image: 5 * 1024 * 1024,
+  image: 10 * 1024 * 1024,
   video: 50 * 1024 * 1024,
-  audio: 20 * 1024 * 1024,
+  audio: 10 * 1024 * 1024,
 };
 
 const MIME_TYPES = {
   image: ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'],
   video: ['video/mp4', 'video/x-matroska', 'video/quicktime', 'video/webm'],
-  audio: ['audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/oog'],
+  audio: ['audio/mp3', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/oog'],
 };
 
 const S3 = new S3Client({
