@@ -1,5 +1,12 @@
 module.exports = (req, res, next) => {
-  const allowedOrigins = [`${process.env.LOCAL_ORIGIN}`];
+  const allowedOrigins = [
+    `${
+      process.env.NODE_ENV === 'development'
+        ? process.env.LOCAL_ORIGIN
+        : process.env.PRODUCT_ORIGIN
+    }`,
+  ];
+
   const { origin } = req.headers;
 
   if (allowedOrigins.includes(origin)) {
