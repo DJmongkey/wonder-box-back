@@ -1,4 +1,11 @@
 require('dotenv').config();
+
+process.env.NODE_ENV =
+  process.env.NODE_ENV &&
+  process.env.NODE_ENV.trim().toLowerCase() === 'production'
+    ? 'production'
+    : 'development';
+
 const express = require('express');
 
 const connectMongoDB = require('./db');
@@ -26,7 +33,7 @@ app.use((req, res, next) => {
   next(new HttpError(404, ERRORS.NOT_FOUND));
 });
 
-const isDevelopment = process.env.NODE_ENV;
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 app.use((err, req, res, next) => {
   res.locals.message = err.message;
@@ -50,5 +57,9 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(3030, () => {
-  console.log('Server running at http://localhost:3030');
+  console.log(
+    `Server running at ${
+      isDevelopment ? process.env.LOCAL_ORIGIN : process.env.PRODUCT_ORIGIN
+    }`,
+  );
 });
