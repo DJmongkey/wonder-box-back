@@ -15,8 +15,14 @@ const LIMITS = {
 
 const MIME_TYPES = {
   image: ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'],
-  video: ['video/mp4', 'video/x-matroska', 'video/quicktime', 'video/webm'],
-  audio: ['audio/mp3', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/oog'],
+  video: [
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/x-matroska',
+    'video/quicktime',
+  ],
+  audio: ['audio/mp3', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'audio/ogg'],
 };
 
 const S3 = new S3Client({

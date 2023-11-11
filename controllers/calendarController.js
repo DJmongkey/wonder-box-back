@@ -452,5 +452,9 @@ exports.getSharingLink = async (req, res, next) => {
 };
 
 function generateSharingLink(calendarId) {
-  return `${process.env.LOCAL_ORIGIN}/calendars/${calendarId}/share`;
+  return `${
+    process.env.NODE_ENV === 'production'
+      ? process.env.PRODUCT_ORIGIN
+      : process.env.LOCAL_ORIGIN
+  }/calendars/${calendarId}/share`;
 }
