@@ -317,7 +317,7 @@ exports.deleteMyWonderBox = async (req, res, next) => {
 
 exports.postStyle = async (req, res, next) => {
   try {
-    const { calendarId, file } = req;
+    const { calendarId } = req;
 
     uploadFiles.single('image')(req, res, async (error) => {
       if (error) {
@@ -338,7 +338,7 @@ exports.postStyle = async (req, res, next) => {
         titleColor,
         borderColor,
         backgroundColor,
-        image: file?.location || image,
+        image: req.file?.location || image,
         box,
       };
 
