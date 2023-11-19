@@ -28,6 +28,8 @@ https://github.com/DJmongkey/wonder-box-back.git
 크리스마스의 설렘을 매일매일 느껴보세요. <br />
 어드벤트 캘린더를 직접 커스텀하여 소중한 사람에게 공유할 수 있는 캘린더를 제공하는 웹 사이트입니다.
 
+[👉🏻 WonderBox 이용해보러 가기](https://www.my-wonderbox.co.kr)
+
 > 잠깐?! 🎄 크리스마스 어드벤트 캘린더(Advent Calendar)를 아시나요? <br />
 > 12월 1일부터 24일 또는 25일까지 각 날짜에 해당하는 작은 문이나 칸이 있는 달력입니다.🗓️ <br />
 > 전통적으로 종교적인 의미를 가졌으나 현재는 🍭사탕, 🍫초콜릿,🪆장난감,🧴화장품 같은 다양한 선물이 들어있어, <br />
@@ -79,8 +81,8 @@ https://github.com/DJmongkey/wonder-box-back.git
   - 아이디어 브레인 스토밍
   - 기술 스택 결정
   - 유저 플로우 작성
-  - Mockup 작업 - Figma
-  - DB Schema 모델링
+  - [Mockup 작업 - Figma](https://www.figma.com/file/m7Q82R9FiYARmRADkqxs9Q/WonderBox?type=design&node-id=0%3A1&mode=design&t=c1E5CxmA7xdmqdxQ-1)
+  - [DB Schema 모델링](https://lucid.app/lucidchart/c9115e46-87a1-4472-9c82-0b2f2c43a357/edit?viewport_loc=-1779%2C-350%2C2424%2C1237%2C0_0&invitationId=inv_291ff8cf-857c-4170-92b2-490f097682e1)
   - Notion 칸반 작업
   - FE/BE 셋팅
 
@@ -139,7 +141,7 @@ Wonder Box의 핵심 기능인 컨텐츠 페이지는 기본정보 페이지에�
 
 다만 이렇게 할 경우 DB에서는 데일리박스 안의 컨텐츠 id가 생기다보니, 나중에 비인증 유저가 로그인 해서 localStorage에서 데이터를 가져와서 그 데이터를 업로드 할 때 id가 일치하지 않아 오류가 생겼습니다.
 
-이 문제도 기본정보 페이지에서 localstorage에 저장된 데일리박스 데이터를 미리 불러와 저장하는 방식으로 해결했습니다.
+이 문제도 기본정보 페이지에서 localStorage에 저장된 데일리박스 데이터를 미리 불러와 저장하는 방식으로 해결했습니다.
 
 ### 3. 공유페이지
 
@@ -148,8 +150,8 @@ Wonder Box의 핵심 기능인 컨텐츠 페이지는 기본정보 페이지에�
 하지만 로컬 환경에서는 공유 링크로 들어오는 것이 문제가 되지 않았던 것이, <br />
 배포 후에는 404에러가 뜨며 페이지를 찾을 수 없다고 하는 문제가 생겼습니다.
 
-원인은 결국 React가 SPA라는 기본적인 특성 때문이었습니다.<br />
-싱글 페이지 어플리케이션이기 때문에 메인 라우트에 html을 보내주면, 이곳을 기준으로 react-router-dom을 이용하여 하위 경로에 대한 라우팅을 해줍니다.
+원인은 결국 **React가 SPA라는 기본적인 특성** 때문이었습니다.<br />
+싱글 페이지 어플리케이션이기 때문에 메인 라우트에 html을 보내주면, 이곳을 기준으로 React-router-dom을 이용하여 하위 경로에 대한 라우팅을 해줍니다.
 
 그렇기 때문에 root 경로가 아닌 곳에서 새로고침을 하거나, 새로운 탭에서 공유 링크를 입력하게 되면 해당 경로에 대한 html은 따로 존재하지 않기 때문에 브라우저는 당연히 모를 수 밖에 없었습니다.
 
@@ -157,21 +159,21 @@ Wonder Box의 핵심 기능인 컨텐츠 페이지는 기본정보 페이지에�
 
 ### 4. 배포
 
-Vercel로 배포한 React는 https로 배포가 되고, EC2로 배포한 Express는 http로 배포가 되기 때문에 CORS 문제를 해결하기 위해 백엔드를 http에서 https로 바꿔주어야 했습니다.
+**Vercel로 배포한 React는 https**로 배포가 되고, **EC2로 배포한 Express는 http**로 배포가 되기 때문에 CORS 문제를 해결하기 위해 백엔드를 http에서 https로 바꿔주어야 했습니다.
 
 AWS Route53에서 http를 https로 바꿔 줄 수 있는데 그러려면 도메인이 필요했고, 구매한 도메인은 AWS Certificate Manager를 이용해 인증서를 받아서 사용해야 했습니다.
 
 단순히 백엔드를 https로 바꿔주자는 생각으로 구매한 도메인을 백엔드에 입히고 생각해보니, 사용자가 접하는 도메인은 프론트 배포 도메인이기 때문에 뭔가 잘못되었다는 생각이 들었습니다.
 
-구매한 도메인은 프론트에 할당해주고, 백엔드를 위해 또다시 도메인을 구매하는 것은 불필요하기에 무료 도메인을 찾아 인증서를 받으려 했습니다.
-하지만 AWS certificate manager에서 인증서가 받아지지 않아서 Let's Encrypt 무료 인증서를 자동으로 발급해주는 Certbot을 사용하기 위해 조사를 하기 시작했고 어차피 CORS는 origin이 동일해야 하는데 도메인이 또 달라지기 때문에 해결이 되지 않기도 하고, 이 방법은 너무 비효율적이라는 판단이 들었습니다.
+구매한 도메인은 프론트에 할당해주고, 백엔드를 위해 또다시 도메인을 구매하는 것은 불필요하기에 무료 도메인을 찾아 인증서를 받으려 했습니다.<br />
+하지만 AWS certificate manager에서 인증서가 받아지지 않아서 Let's Encrypt 무료 인증서를 자동으로 발급해주는 Certbot을 사용하기 위해 조사를 하다가, 또 곰곰히 생각해보니 어차피 CORS는 origin이 동일해야 하는데 도메인이 또 달라지기 때문에 해결이 되지 않기도 하고, 이 방법은 너무 비효율적이라는 판단이 들었습니다.
 
 그래서 다시 AWS로 돌아와 방법을 찾기 시작했습니다.<br />
 그렇게 알게된 것이 Route53에서 호스팅 영역 등록시, 하나의 도메인으로 서브도메인을 설정할 수 있다는 것이 었습니다.<br />
 
-우선 AWS Certificate Manager에서 도메인 인증시 \*.my-wonderbox.co.kr로 요청한 후<br />
-Route53에서 백엔드는 api.my-wonderbox.co.kr, 프론트엔드는 www.my-wonderbox.co.kr 이렇게 설정해 주는 것이 었습니다.<br />
-그리고 EC2의 로드밸런서를 이용해서 http로 들어오는 요청들을 https로 redirection 해주고, https로 들어오면 위에서 설정한 백엔드 서브도메인으로 전달되도록 해주었습니다.
+우선 **AWS Certificate Manager**에서 도메인 인증시 \*.my-wonderbox.co.kr로 요청한 후<br />
+**Route53**에서 백엔드는 api.my-wonderbox.co.kr, 프론트엔드는 www.my-wonderbox.co.kr 이렇게 설정해 주는 것이 었습니다.<br />
+그리고 **EC2의 로드밸런서**를 이용해서 http로 들어오는 요청들을 https로 redirection 해주고, https로 들어오면 위에서 설정한 백엔드 서브도메인으로 전달되도록 해주었습니다.
 
 간단한 프론트 배포만 해보다가 프론트, 백엔드 모두 연결하여 배포하려다 보니 CORS 문제 등 여러가지 생각해야할 부분들이 많았고,
 배포에 활용한 AWS의 기능들도 하나하나 알아야 했기에 소요된 시간도 길었고 험난했지만 덕분에 AWS의 여러 기능을 다뤄볼 수 있던던 좋은 기회였습니다.
@@ -200,14 +202,15 @@ $ npm install
 2. 디렉토리 root 위치에 .env 파일을 생성하여 환경설정을 입력합니다.
 
 ```javascript
-MONGODB_URL=<YOUR_MONGO_DB_ADDRESS>
+MONGODB_URL = <YOUR_MONGO_DB_ADDRESS>
 JWT_ACCESS_TOKEN_SECRET = <YOUR_ACCESS_JWT_SECRET_TOKEN>
 JWT_REFRESH_TOKEN_SECRET = <YOUR_REFRESH_JWT_SECRET_TOKEN>
-S3_ACCESS_KEY_ID=<YOUR_S3_ACCESS_KEY_ID>
-S3_SECRET_ACCESS_KEY=<YOUR_S3_SECRET_ACCESS_KEY>
-S3_REGION=<YOUR_S3_REGION>
-S3_BASE_URL =<YOUR_S3_BASE_URL>
-LOCAL_ORIGIN =<YOUR_LOCAL_ORIGIN>
+S3_ACCESS_KEY_ID = <YOUR_S3_ACCESS_KEY_ID>
+S3_SECRET_ACCESS_KEY = <YOUR_S3_SECRET_ACCESS_KEY>
+S3_REGION = <YOUR_S3_REGION>
+S3_BASE_URL = <YOUR_S3_BASE_URL>
+LOCAL_ORIGIN = http://localhost:<YOUR_LOCAL_PORT>
+PRODUCT_ORIGIN = https://www.my-wonderbox.co.kr
 ```
 
 3.
