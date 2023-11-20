@@ -107,7 +107,51 @@ exports.putBaseInfo = async (req, res, next) => {
 
     const updateFields = { ...req.body };
 
-    await Calendar.updateOne({ _id: calendarId }, { $set: updateFields });
+    const newStartDate = new Date(updateFields.startDate);
+    const newEndDate = new Date(updateFields.endDate);
+    const newDateRange = [];
+
+    for (
+      let day = newStartDate;
+      day <= newEndDate;
+      day.setDate(day.getDate() + 1)
+    ) {
+      newDateRange.push(new Date(day).toISOString());
+    }
+
+    const calendar = await Calendar.findById(calendarId).populate('dailyBoxes');
+    const existingDailyBoxes = calendar.dailyBoxes;
+
+    const updateDailyBoxes = [];
+
+    for (const date of newDateRange) {
+      let dailyBox = existingDailyBoxes.find(
+        (box) => box.date.toISOString() === date,
+      );
+
+      if (!dailyBox) {
+        dailyBox = await DailyBox.create({
+          calendarId,
+          date,
+          content: {},
+          isOpen: true,
+        });
+      }
+
+      updateDailyBoxes.push(dailyBox._id);
+    }
+
+    for (const box of existingDailyBoxes) {
+      if (!newDateRange.includes(box.date.toISOString())) {
+        await DailyBox.deleteOne({ _id: box._id });
+      }
+    }
+
+    calendar.dailyBoxes = updateDailyBoxes;
+    calendar.startDate = updateFields.startDate;
+    calendar.endDate = updateFields.endDate;
+
+    await calendar.save();
 
     return res.status(200).json({
       result: 'ok',
@@ -172,13 +216,15 @@ exports.getAllBoxes = async (req, res, next) => {
   try {
     const calendar = await Calendar.findById(calendarId).populate('dailyBoxes');
 
-    const { dailyBoxes } = calendar;
+    const { dailyBoxes, startDate, endDate } = calendar;
 
     if (!dailyBoxes) {
       return next(new HttpError(404, ERRORS.CALENDAR.CONTENTS_NOT_FOUND));
     }
 
-    return res.status(200).json({ result: 'ok', dailyBoxes });
+    return res
+      .status(200)
+      .json({ result: 'ok', dailyBoxes, startDate, endDate });
   } catch (error) {
     console.error(error);
     return next(new HttpError(500, ERRORS.INTERNAL_SERVER_ERR));
